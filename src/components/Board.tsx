@@ -340,19 +340,6 @@ export const Board: React.FC = () => {
     // For normal mode, just return the columns
     return currentColumns;
   }, [board, viewMode, selectedTag, getCurrentColumns, showHiddenTasks]);
-  
-  const handleAddColumn = () => {
-    if (newColumnTitle.trim()) {
-      addColumn(newColumnTitle);
-      setNewColumnTitle('');
-      setIsAddingColumn(false);
-    }
-  };
-
-  // Handle visibility toggle for task
-  const handleToggleTaskVisibility = (taskId: string) => {
-    toggleTaskVisibility(taskId);
-  };
 
   // Toggle minimization for a single task
   const toggleTaskMinimization = (taskId: string) => {
@@ -367,20 +354,43 @@ export const Board: React.FC = () => {
     });
   };
 
-  // Toggle minimization for all tasks
+  // Effect to handle minimization state when view mode changes
+  useEffect(() => {
+    // This ensures minimization state is preserved between mode switches
+    if (viewMode === 'presentation') {
+      // When switching to presentation mode, we need to ensure 
+      // the minimizedTasks set correctly reflects all tasks
+      const currentColumns = getCurrentColumns();
+      
+      // Force a re-render to apply minimization states immediately
+      setMinimizedTasks(prev => new Set([...prev]));
+    }
+  }, [viewMode]);
+
+  // Toggle minimization for all tasks - fixed version
   const toggleAllTasksMinimization = () => {
+    // Use columnsToRender instead of getCurrentColumns() to ensure we get ALL visible tasks
+    const currentlyVisibleColumns = columnsToRender;
+    
     if (allTasksMinimized) {
+      // Clear minimized tasks
       setMinimizedTasks(new Set());
       setAllTasksMinimized(false);
     } else {
-      // Minimize all tasks
+      // Create a new set of ALL task IDs from currently visible columns
       const allTaskIds = new Set<string>();
-      const currentColumns = getCurrentColumns();
-      currentColumns.forEach(col => {
-        col.tasks.forEach(task => {
+      
+      currentlyVisibleColumns.forEach(col => {
+        const filteredTasks = getFilteredTasks(col.tasks);
+        filteredTasks.forEach(task => {
           allTaskIds.add(task.id);
         });
       });
+      
+      // Log for debugging
+      console.log(`Minimizing ${allTaskIds.size} tasks`);
+      
+      // Set the new minimized tasks
       setMinimizedTasks(allTaskIds);
       setAllTasksMinimized(true);
     }
@@ -389,6 +399,20 @@ export const Board: React.FC = () => {
   // Toggle text size
   const toggleTextSize = () => {
     setSmallText(prev => !prev);
+  };
+
+  // Function definitions - order matters for React function components
+  const handleAddColumn = () => {
+    if (newColumnTitle.trim()) {
+      addColumn(newColumnTitle);
+      setNewColumnTitle('');
+      setIsAddingColumn(false);
+    }
+  };
+
+  // Handle visibility toggle for task
+  const handleToggleTaskVisibility = (taskId: string) => {
+    toggleTaskVisibility(taskId);
   };
 
   if (isLoading) {
@@ -490,7 +514,7 @@ export const Board: React.FC = () => {
             .sort((a, b) => a.order - b.order)
             .map((column) => (
               <Column
-                key={column.id}
+                key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
                 column={column}
                 tasks={getFilteredTasks(column.tasks.sort((a, b) => a.order - b.order))}
                 onAddTask={() => handleOpenAddTaskModal(column.id)}
