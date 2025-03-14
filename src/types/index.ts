@@ -4,6 +4,7 @@ export interface Task {
   description: string;
   tag: string;
   tagColor: string;
+  reference: string; // Nuevo campo para referencia
   columnId: string;
   order: number;
   createdAt: string;

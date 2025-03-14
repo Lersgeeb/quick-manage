@@ -70,6 +70,7 @@ export const useBoard = () => {
       // Ensure backwards compatibility
       tag: taskData.tag || taskData.client || '',
       tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
+      reference: taskData.reference || '',
       id: uuidv4(),
       columnId,
       order: 0, // Will be updated in the next step

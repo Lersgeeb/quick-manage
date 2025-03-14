@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import { Column as ColumnType, Task as TaskType } from '../types';
 import { Task } from './Task';
-import { TaskForm } from './TaskForm';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
@@ -17,8 +16,8 @@ import ListItemText from '@mui/material/ListItemText';
 interface ColumnProps {
   column: ColumnType;
   tasks: TaskType[];
-  onAddTask: (columnId: string, task: Omit<TaskType, 'id' | 'columnId' | 'order' | 'createdAt' | 'updatedAt'>) => void;
-  onUpdateTask: (taskId: string, updates: Partial<TaskType>) => void;
+  onAddTask: (columnId: string) => void;
+  onEditTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
@@ -30,15 +29,13 @@ export const Column: React.FC<ColumnProps> = ({
   column, 
   tasks, 
   onAddTask, 
-  onUpdateTask, 
+  onEditTask, 
   onDeleteTask,
   onUpdateColumn,
   onDeleteColumn,
   onMoveLeft,
   onMoveRight
 }) => {
-  const [isAddingTask, setIsAddingTask] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -68,26 +65,8 @@ export const Column: React.FC<ColumnProps> = ({
     handleCloseMenu();
   };
 
-  const handleAddTask = (taskData: Omit<TaskType, 'id' | 'columnId' | 'order' | 'createdAt' | 'updatedAt'>) => {
-    onAddTask(column.id, taskData);
-    setIsAddingTask(false);
-  };
-
-  const handleEditTask = (taskId: string) => {
-    setEditingTaskId(taskId);
-  };
-
-  const handleUpdateTask = (taskData: Omit<TaskType, 'id' | 'columnId' | 'order' | 'createdAt' | 'updatedAt'>) => {
-    if (editingTaskId) {
-      onUpdateTask(editingTaskId, taskData);
-      setEditingTaskId(null);
-    }
-  };
-
-  const taskBeingEdited = editingTaskId ? tasks.find(t => t.id === editingTaskId) : undefined;
-
   return (
-    <div className="bg-gray-100 p-2 rounded-md w-72 flex flex-col max-h-full">
+    <div className="bg-gray-100 p-2 rounded-md flex flex-col max-h-full flex-1 min-w-[300px] mr-4 last:mr-0">
       <div className="flex justify-between items-center mb-2 p-2">
         {isEditingTitle ? (
           <div className="flex w-full">
@@ -169,7 +148,7 @@ export const Column: React.FC<ColumnProps> = ({
                 key={task.id}
                 task={task}
                 index={index}
-                onEdit={handleEditTask}
+                onEdit={onEditTask}
                 onDelete={onDeleteTask}
               />
             ))}
@@ -178,33 +157,12 @@ export const Column: React.FC<ColumnProps> = ({
         )}
       </Droppable>
 
-      {!isAddingTask && !editingTaskId && (
-        <button
-          onClick={() => setIsAddingTask(true)}
-          className="mt-2 w-full py-2 bg-white text-blue-500 border border-blue-300 rounded-md hover:bg-blue-50 flex items-center justify-center"
-        >
-          <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
-        </button>
-      )}
-
-      {isAddingTask && (
-        <div className="mt-2">
-          <TaskForm
-            onSubmit={handleAddTask}
-            onCancel={() => setIsAddingTask(false)}
-          />
-        </div>
-      )}
-
-      {editingTaskId && taskBeingEdited && (
-        <div className="mt-2">
-          <TaskForm
-            task={taskBeingEdited}
-            onSubmit={handleUpdateTask}
-            onCancel={() => setEditingTaskId(null)}
-          />
-        </div>
-      )}
+      <button
+        onClick={() => onAddTask(column.id)}
+        className="mt-2 w-full py-2 bg-white text-blue-500 border border-blue-300 rounded-md hover:bg-blue-50 flex items-center justify-center"
+      >
+        <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
+      </button>
     </div>
   );
 };

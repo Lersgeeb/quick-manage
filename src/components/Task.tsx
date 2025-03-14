@@ -16,6 +16,7 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
+  const referenceToShow = task.reference || '';
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -60,9 +61,11 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
           
           <div className="flex justify-between items-center">
             <TagBadge tag={tagToShow} color={colorToShow} />
-            <span className="text-xs text-gray-400">
-              {new Date(task.updatedAt).toLocaleDateString()}
-            </span>
+            {referenceToShow && (
+              <span className="text-xs text-gray-500 font-mono">
+                {referenceToShow}
+              </span>
+            )}
           </div>
         </div>
       )}

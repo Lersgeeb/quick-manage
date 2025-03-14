@@ -25,6 +25,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
   const [description, setDescription] = useState(task?.description || '');
   const [tag, setTag] = useState(task?.tag || '');
   const [tagColor, setTagColor] = useState(task?.tagColor || DEFAULT_COLORS[0]);
+  const [reference, setReference] = useState(task?.reference || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +33,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       title,
       description,
       tag,
-      tagColor
+      tagColor,
+      reference
     });
   };
 
@@ -76,6 +78,20 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           required
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="reference">
+          Referencia
+        </label>
+        <input
+          id="reference"
+          type="text"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder="Ej. TASK-123"
         />
       </div>
 
