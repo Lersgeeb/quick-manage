@@ -26,6 +26,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import TextDecreaseIcon from '@mui/icons-material/TextDecrease';
+import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
 import Tooltip from '@mui/material/Tooltip';
 
 export const Board: React.FC = () => {
@@ -58,6 +60,7 @@ export const Board: React.FC = () => {
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
   const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
   const [allTasksMinimized, setAllTasksMinimized] = useState(false);
+  const [smallText, setSmallText] = useState(false);
   
   // Estado para el modal de task form
   const [taskModal, setTaskModal] = useState<{
@@ -383,6 +386,11 @@ export const Board: React.FC = () => {
     }
   };
 
+  // Toggle text size
+  const toggleTextSize = () => {
+    setSmallText(prev => !prev);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen dark:bg-gray-900">
@@ -438,6 +446,19 @@ export const Board: React.FC = () => {
             </Button>
           </Tooltip>
           
+          {/* Toggle for text size */}
+          <Tooltip title={smallText ? "Texto normal" : "Texto pequeño"}>
+            <Button
+              onClick={toggleTextSize}
+              size="small"
+              variant="outlined"
+              color="secondary"
+              startIcon={smallText ? <TextIncreaseIcon /> : <TextDecreaseIcon />}
+            >
+              {smallText ? "Agrandar" : "Reducir"}
+            </Button>
+          </Tooltip>
+          
           {/* Toggle for hidden tasks */}
           <FormControlLabel
             control={
@@ -485,6 +506,7 @@ export const Board: React.FC = () => {
                 minimizedTasks={minimizedTasks}
                 viewMode={viewMode}
                 showHiddenTasks={showHiddenTasks}
+                smallText={smallText}
               />
             ))}
         </div>

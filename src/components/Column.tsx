@@ -29,6 +29,7 @@ interface ColumnProps {
   onToggleMinimize?: (taskId: string) => void;
   minimizedTasks?: Set<string>;
   showHiddenTasks?: boolean;
+  smallText?: boolean;
 }
 
 export const Column: React.FC<ColumnProps> = ({ 
@@ -46,7 +47,8 @@ export const Column: React.FC<ColumnProps> = ({
   onToggleTaskVisibility,
   onToggleMinimize,
   minimizedTasks = new Set(),
-  showHiddenTasks = false
+  showHiddenTasks = false,
+  smallText = false
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
@@ -151,7 +153,7 @@ export const Column: React.FC<ColumnProps> = ({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-grow overflow-y-auto p-3 rounded-md transition-colors duration-200 min-h-[200px] ${
+            className={`flex-grow overflow-y-auto p-3 rounded-md transition-colors duration-200 min-h-[200px] custom-scrollbar ${
               snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-dashed border-blue-300 dark:border-blue-700' : ''
             }`}
           >
@@ -168,6 +170,7 @@ export const Column: React.FC<ColumnProps> = ({
                 isMinimized={minimizedTasks.has(task.id)}
                 viewMode={viewMode}
                 showHiddenTasks={showHiddenTasks}
+                smallText={smallText}
               />
             ))}
             {provided.placeholder}

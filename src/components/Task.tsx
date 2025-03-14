@@ -27,6 +27,7 @@ interface TaskProps {
   isMinimized?: boolean;
   viewMode?: BoardViewMode;
   showHiddenTasks?: boolean;
+  smallText?: boolean;
 }
 
 export const Task: React.FC<TaskProps> = ({ 
@@ -39,7 +40,8 @@ export const Task: React.FC<TaskProps> = ({
   onToggleMinimize,
   isMinimized = false,
   viewMode = 'normal',
-  showHiddenTasks = false
+  showHiddenTasks = false,
+  smallText = false
 }) => {
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
@@ -76,18 +78,22 @@ export const Task: React.FC<TaskProps> = ({
             ...provided.draggableProps.style,
             transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'translate(0px, 0px)'
           }}
-          className={`p-4 mb-3 bg-white dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 
+          className={`mb-2 bg-white dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 
             ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 rotate-1' : ''}
             ${isHidden && showHiddenTasks ? 'opacity-50 border-dashed' : ''}
-            ${isMinimized ? 'py-2' : 'py-4'} 
+            p-3 py-3
             transition-all duration-200 hover:shadow-md cursor-grab active:cursor-grabbing`}
         >
           {/* When minimized, use a single row with all elements aligned */}
           {isMinimized ? (
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                {tagToShow && <TagBadge tag={tagToShow} color={colorToShow} />}
-                <h3 className="font-medium text-gray-800 dark:text-gray-100">
+              <div className="flex items-center gap-1.5">
+                {tagToShow && 
+                  <div className="transform scale-90 origin-left">
+                    <TagBadge tag={tagToShow} color={colorToShow} />
+                  </div>
+                }
+                <h3 className={`font-medium text-gray-800 dark:text-gray-100 ${smallText ? 'text-sm' : ''}`}>
                   {task.title}
                   {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
                 </h3>
@@ -100,9 +106,9 @@ export const Task: React.FC<TaskProps> = ({
                 <Tooltip title="Opciones">
                   <button 
                     onClick={handleOpenMenu}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-0.5 cursor-pointer"
                   >
-                    <MoreVertIcon fontSize="small" />
+                    <MoreVertIcon fontSize="small" sx={{ fontSize: smallText ? '1.1rem' : 'inherit' }} />
                   </button>
                 </Tooltip>
                 <Menu
@@ -153,10 +159,10 @@ export const Task: React.FC<TaskProps> = ({
               </div>
             </div>
           ) : (
-            // Regular expanded view
+            // Regular expanded view with smaller padding
             <>
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium text-gray-800 dark:text-gray-100">
+                <h3 className={`font-medium text-gray-800 dark:text-gray-100 ${smallText ? 'text-sm' : ''}`}>
                   {task.title}
                   {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
                 </h3>
@@ -221,13 +227,17 @@ export const Task: React.FC<TaskProps> = ({
               </div>
             
               {task.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{task.description}</p>
+                <p className={`text-gray-600 dark:text-gray-300 mb-2 line-clamp-2 ${smallText ? 'text-xs' : 'text-sm'}`}>
+                  {task.description}
+                </p>
               )}
             
               <div className="flex justify-between items-center">
-                <TagBadge tag={tagToShow} color={colorToShow} />
+                <div className={smallText ? 'transform scale-90 origin-left' : ''}>
+                  <TagBadge tag={tagToShow} color={colorToShow} />
+                </div>
                 {referenceToShow && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                  <span className={`text-gray-500 dark:text-gray-400 font-mono ${smallText ? 'text-xs' : ''}`}>
                     {referenceToShow}
                   </span>
                 )}
