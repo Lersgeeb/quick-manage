@@ -2,11 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/quickmanage/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/quick-manage/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-    <script type="module" crossorigin src="/quickmanage/assets/index-6641ec17.js"></script>
-    <link rel="stylesheet" href="/quickmanage/assets/index-cdc98454.css">
+    <title>QuickManage</title>
+    <script type="text/javascript">
+      // Código para manejar rutas en GitHub Pages
+      (function() {
+        // Verificar si estamos en GitHub Pages (usando la URL)
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const basePathName = isGitHubPages ? '/quick-manage/' : '/';
+        
+        // Obtener y procesar parámetros de URL para manejo de rutas
+        const query = window.location.search;
+        const urlParams = new URLSearchParams(query);
+        const path = urlParams.get('path');
+        
+        if (path) {
+          // Elimina los parámetros de búsqueda para tener una URL limpia
+          history.replaceState(null, null, basePathName + path);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/quick-manage/assets/index-c7011771.js"></script>
+    <link rel="stylesheet" href="/quick-manage/assets/index-cdc98454.css">
   </head>
   <body>
     <div id="root"></div>
