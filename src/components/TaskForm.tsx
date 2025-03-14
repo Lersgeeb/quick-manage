@@ -39,15 +39,15 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-md shadow-md">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-md">
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="title">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="title">
           Título
         </label>
         <input
           id="title"
           type="text"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -55,12 +55,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="description">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="description">
           Descripción
         </label>
         <textarea
           id="description"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -68,13 +68,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="tag">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="tag">
           Etiqueta
         </label>
         <input
           id="tag"
           type="text"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           required
@@ -82,13 +82,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="reference">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="reference">
           Referencia
         </label>
         <input
           id="reference"
           type="text"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           placeholder="Ej. TASK-123"
@@ -96,7 +96,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-1">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1">
           Color de etiqueta
         </label>
         <div className="flex flex-wrap gap-2">
@@ -117,7 +117,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       <div className="flex justify-end space-x-2">
         <button
           type="button"
-          className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
           onClick={onCancel}
         >
           Cancelar

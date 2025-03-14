@@ -4,8 +4,10 @@ import { Column } from './Column';
 import { ImportExport } from './ImportExport';
 import { TagFilter } from './TagFilter';
 import { TaskFormModal } from './TaskFormModal';
+import { ThemeToggle } from './ThemeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
+import { useTheme } from '../contexts/ThemeContext';
 import { Task } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
@@ -18,6 +20,7 @@ import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 
 export const Board: React.FC = () => {
+  const { darkMode } = useTheme();
   const { 
     board, 
     isLoading, 
@@ -134,17 +137,18 @@ export const Board: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen dark:bg-gray-900">
         <CircularProgress />
       </div>
     );
   }
 
   return (
-    <div className="p-4 h-full">
+    <div className="p-4 h-full dark:bg-gray-900 dark:text-white transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">QuickManage</h1>
-        <div className="flex space-x-2">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">QuickManage</h1>
+        <div className="flex space-x-2 items-center">
+          <ThemeToggle />
           <ImportExport />
           <Button
             variant="contained"
@@ -202,10 +206,16 @@ export const Board: React.FC = () => {
       />
 
       {/* Dialog para agregar nueva columna */}
-      <Dialog open={isAddingColumn} onClose={() => setIsAddingColumn(false)}>
-        <DialogTitle>Nueva Columna</DialogTitle>
+      <Dialog 
+        open={isAddingColumn} 
+        onClose={() => setIsAddingColumn(false)}
+        PaperProps={{
+          className: darkMode ? 'bg-gray-800 text-gray-100' : ''
+        }}
+      >
+        <DialogTitle className={darkMode ? 'text-gray-100' : ''}>Nueva Columna</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText className={darkMode ? 'text-gray-300' : ''}>
             Ingresa un título para la nueva columna.
           </DialogContentText>
           <TextField
@@ -221,10 +231,26 @@ export const Board: React.FC = () => {
             onKeyPress={(e) => {
               if (e.key === 'Enter') handleAddColumn();
             }}
+            InputProps={{
+              className: darkMode ? 'text-gray-100' : ''
+            }}
+            InputLabelProps={{
+              className: darkMode ? 'text-gray-300' : ''
+            }}
+            sx={{
+              '.MuiOutlinedInput-notchedOutline': {
+                borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : ''
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : ''
+              }
+            }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsAddingColumn(false)}>Cancelar</Button>
+          <Button onClick={() => setIsAddingColumn(false)} className={darkMode ? 'text-gray-300' : ''}>
+            Cancelar
+          </Button>
           <Button onClick={handleAddColumn} variant="contained" color="primary">
             Crear
           </Button>

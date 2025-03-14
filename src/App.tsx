@@ -1,12 +1,15 @@
 import React from 'react';
 import { Board } from './components/Board';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
 
 function App() {
   return (
-    <div className="App h-screen bg-gray-50">
-      <Board />
-    </div>
+    <ThemeProvider>
+      <div className="App h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <Board />
+      </div>
+    </ThemeProvider>
   );
 }
 

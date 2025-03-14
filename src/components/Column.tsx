@@ -66,7 +66,7 @@ export const Column: React.FC<ColumnProps> = ({
   };
 
   return (
-    <div className="bg-gray-100 p-2 rounded-md flex flex-col max-h-full flex-1 min-w-[300px] mr-4 last:mr-0">
+    <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md flex flex-col max-h-full flex-1 min-w-[300px] mr-4 last:mr-0 transition-colors duration-200">
       <div className="flex justify-between items-center mb-2 p-2">
         {isEditingTitle ? (
           <div className="flex w-full">
@@ -74,7 +74,7 @@ export const Column: React.FC<ColumnProps> = ({
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              className="flex-1 px-2 py-1 border border-gray-300 rounded-md mr-1"
+              className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md mr-1 dark:bg-gray-700 dark:text-white"
               autoFocus
               onKeyPress={(e) => {
                 if (e.key === 'Enter') handleSaveColumnTitle();
@@ -89,25 +89,25 @@ export const Column: React.FC<ColumnProps> = ({
           </div>
         ) : (
           <>
-            <h2 className="font-bold text-gray-700">{column.title}</h2>
+            <h2 className="font-bold text-gray-700 dark:text-gray-200">{column.title}</h2>
             <div className="flex items-center space-x-1">
               <button 
                 onClick={() => onMoveLeft(column.id)}
-                className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-200"
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                 title="Mover a la izquierda"
               >
                 <ChevronLeftIcon fontSize="small" />
               </button>
               <button 
                 onClick={() => onMoveRight(column.id)}
-                className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-200"
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                 title="Mover a la derecha"
               >
                 <ChevronRightIcon fontSize="small" />
               </button>
               <button 
                 onClick={handleOpenMenu}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <MoreVertIcon fontSize="small" />
               </button>
@@ -140,7 +140,7 @@ export const Column: React.FC<ColumnProps> = ({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex-grow overflow-y-auto p-3 rounded-md transition-colors duration-200 min-h-[200px] ${
-              snapshot.isDraggingOver ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
+              snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-dashed border-blue-300 dark:border-blue-700' : ''
             }`}
           >
             {tasks.map((task, index) => (
@@ -159,7 +159,7 @@ export const Column: React.FC<ColumnProps> = ({
 
       <button
         onClick={() => onAddTask(column.id)}
-        className="mt-2 w-full py-2 bg-white text-blue-500 border border-blue-300 rounded-md hover:bg-blue-50 flex items-center justify-center"
+        className="mt-2 w-full py-2 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 border border-blue-300 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
       >
         <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
       </button>

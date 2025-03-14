@@ -4,6 +4,7 @@ import { TaskForm } from './TaskForm';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface TaskFormModalProps {
   open: boolean;
@@ -20,6 +21,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const { darkMode } = useTheme();
+  
   const handleSubmit = (taskData: Omit<Task, 'id' | 'columnId' | 'order' | 'createdAt' | 'updatedAt'>) => {
     onSubmit(taskData, columnId);
     onClose();
@@ -31,11 +34,14 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      PaperProps={{
+        className: darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'
+      }}
     >
-      <DialogTitle>
+      <DialogTitle className={darkMode ? 'text-gray-100 bg-gray-800' : 'text-gray-900 bg-white'}>
         {task ? 'Editar Tarea' : 'Nueva Tarea'}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent className={darkMode ? 'bg-gray-800' : 'bg-white'}>
         <TaskForm
           task={task}
           onSubmit={handleSubmit}

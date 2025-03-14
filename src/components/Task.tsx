@@ -29,12 +29,12 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
             ...provided.draggableProps.style,
             transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'translate(0px, 0px)'
           }}
-          className={`p-4 mb-3 bg-white rounded-md shadow-sm border border-gray-200 
-            ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 border-blue-300 rotate-1' : ''}
+          className={`p-4 mb-3 bg-white dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 
+            ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 rotate-1' : ''}
             transition-all duration-200 hover:shadow-md cursor-grab active:cursor-grabbing`}
         >
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium text-gray-800">{task.title}</h3>
+            <h3 className="font-medium text-gray-800 dark:text-gray-100">{task.title}</h3>
             <div 
               className="flex space-x-1"
               onClick={e => e.stopPropagation()}
@@ -42,13 +42,13 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
             >
               <button 
                 onClick={() => onEdit(task.id)}
-                className="text-blue-500 hover:text-blue-700 p-1 cursor-pointer"
+                className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
               >
                 <EditIcon fontSize="small" />
               </button>
               <button 
                 onClick={() => onDelete(task.id)}
-                className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
+                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
               >
                 <DeleteIcon fontSize="small" />
               </button>
@@ -56,13 +56,13 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
           </div>
           
           {task.description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{task.description}</p>
           )}
           
           <div className="flex justify-between items-center">
             <TagBadge tag={tagToShow} color={colorToShow} />
             {referenceToShow && (
-              <span className="text-xs text-gray-500 font-mono">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                 {referenceToShow}
               </span>
             )}
