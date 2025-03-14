@@ -22,7 +22,7 @@ import Alert from '@mui/material/Alert';
 export const ImportExport: React.FC = () => {
   const { board } = useBoard();
   const { exportBoard, importBoard } = useImportExport();
-  const { clearBoard } = useStorage();
+  const { clearBoard, saveBoard } = useStorage();
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -60,7 +60,9 @@ export const ImportExport: React.FC = () => {
     if (!file) return;
 
     try {
-      await importBoard(file);
+      const importedBoard = await importBoard(file);
+      // Save the imported board to localStorage
+      saveBoard(importedBoard);
       showAlert('Tablero importado exitosamente', 'success');
       // Reload the page to show the imported board
       window.location.reload();
