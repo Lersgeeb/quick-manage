@@ -6,6 +6,7 @@ import { TagFilter } from './TagFilter';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { ThemeToggle } from './ThemeToggle';
+import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
@@ -24,6 +25,9 @@ export const Board: React.FC = () => {
   const { darkMode } = useTheme();
   const { 
     board, 
+    viewMode,
+    toggleViewMode,
+    getCurrentColumns,
     isLoading, 
     addColumn, 
     updateColumn, 
@@ -68,7 +72,8 @@ export const Board: React.FC = () => {
       // Buscar la tarea actualizada por ID
       let updatedTask: Task | null = null;
       
-      board.columns.forEach(col => {
+      const currentColumns = getCurrentColumns();
+      currentColumns.forEach(col => {
         const task = col.tasks.find(t => t.id === detailsModal.task?.id);
         if (task) {
           updatedTask = task;
@@ -80,7 +85,7 @@ export const Board: React.FC = () => {
         setDetailsModal({ open: true, task: updatedTask });
       }
     }
-  }, [board]);
+  }, [board, viewMode]);
 
   // Abrir modal para crear tarea
   const handleOpenAddTaskModal = (columnId: string) => {
@@ -93,7 +98,8 @@ export const Board: React.FC = () => {
     let taskToEdit: Task | undefined;
     let columnId: string | undefined;
     
-    board.columns.forEach(col => {
+    const currentColumns = getCurrentColumns();
+    currentColumns.forEach(col => {
       const task = col.tasks.find(t => t.id === taskId);
       if (task) {
         taskToEdit = task;
@@ -111,7 +117,8 @@ export const Board: React.FC = () => {
     // Buscar la tarea por ID
     let taskToView: Task | null = null;
     
-    board.columns.forEach(col => {
+    const currentColumns = getCurrentColumns();
+    currentColumns.forEach(col => {
       const task = col.tasks.find(t => t.id === taskId);
       if (task) {
         taskToView = task;
@@ -215,6 +222,7 @@ export const Board: React.FC = () => {
     const tagsSet = new Set<string>();
     const tagsMap = new Map<string, string>(); // tag -> color
     
+    // Use all tasks from normal mode for tags
     board.columns.forEach(column => {
       column.tasks.forEach(task => {
         // Handle both new and legacy properties
@@ -245,6 +253,58 @@ export const Board: React.FC = () => {
     });
   };
   
+  // Prepare columns for rendering based on view mode and filters
+  const columnsToRender = useMemo(() => {
+    const currentColumns = getCurrentColumns();
+    
+    if (viewMode === 'presentation') {
+      // Get all filtered tasks from normal mode
+      const allFilteredTasks: Task[] = [];
+      
+      board.columns.forEach(normalCol => {
+        const tasksForColumn = normalCol.tasks.filter(task => {
+          if (selectedTag) {
+            const taskTag = task.tag || (task as any).client || '';
+            return taskTag === selectedTag;
+          }
+          return true;
+        });
+        
+        allFilteredTasks.push(...tasksForColumn);
+      });
+      
+      // First check if tasks are already distributed in presentation columns
+      const existingTaskIds = new Set<string>();
+      currentColumns.forEach(col => {
+        col.tasks.forEach(task => existingTaskIds.add(task.id));
+      });
+      
+      // Find tasks that aren't already in presentation columns
+      const newTasks = allFilteredTasks.filter(task => !existingTaskIds.has(task.id));
+      
+      // Create a copy of the presentation columns
+      const updatedColumns = [...currentColumns];
+      
+      // Add any new tasks to the first column if it exists
+      if (updatedColumns.length > 0 && newTasks.length > 0) {
+        const firstColumn = updatedColumns.find(col => col.order === 0) || updatedColumns[0];
+        const columnIndex = updatedColumns.findIndex(col => col.id === firstColumn.id);
+        
+        if (columnIndex >= 0) {
+          updatedColumns[columnIndex] = {
+            ...firstColumn,
+            tasks: [...firstColumn.tasks, ...newTasks]
+          };
+        }
+      }
+      
+      return updatedColumns;
+    }
+    
+    // For normal mode, just return the columns
+    return currentColumns;
+  }, [board, viewMode, selectedTag, getCurrentColumns]);
+  
   const handleAddColumn = () => {
     if (newColumnTitle.trim()) {
       addColumn(newColumnTitle);
@@ -264,10 +324,13 @@ export const Board: React.FC = () => {
   return (
     <div className="p-4 h-full dark:bg-gray-900 dark:text-white transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">QuickManage</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+          QuickManage {viewMode === 'presentation' && '- Modo Presentación'}
+        </h1>
         <div className="flex space-x-2 items-center">
           <ThemeToggle />
           <ImportExport />
+          <PresentationModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
           <Button
             variant="contained"
             color="primary"
@@ -295,7 +358,7 @@ export const Board: React.FC = () => {
         onDragStart={handleDragStart}
       >
         <div className="flex gap-0 overflow-x-auto pb-4 h-[calc(100vh-180px)] w-full">
-          {board.columns
+          {columnsToRender
             .sort((a, b) => a.order - b.order)
             .map((column) => (
               <Column
@@ -310,6 +373,7 @@ export const Board: React.FC = () => {
                 onDeleteColumn={deleteColumn}
                 onMoveLeft={moveColumnLeft}
                 onMoveRight={moveColumnRight}
+                viewMode={viewMode}
               />
             ))}
         </div>
@@ -342,7 +406,9 @@ export const Board: React.FC = () => {
           className: darkMode ? 'bg-gray-800 text-gray-100' : ''
         }}
       >
-        <DialogTitle className={darkMode ? 'text-gray-100' : ''}>Nueva Columna</DialogTitle>
+        <DialogTitle className={darkMode ? 'text-gray-100' : ''}>
+          Nueva Columna {viewMode === 'presentation' ? 'de Presentación' : ''}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText className={darkMode ? 'text-gray-300' : ''}>
             Ingresa un título para la nueva columna.

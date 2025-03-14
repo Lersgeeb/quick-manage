@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
-import { Column as ColumnType, Task as TaskType } from '../types';
+import { Column as ColumnType, Task as TaskType, BoardViewMode } from '../types';
 import { Task } from './Task';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -24,6 +24,7 @@ interface ColumnProps {
   onDeleteColumn: (columnId: string) => void;
   onMoveLeft: (columnId: string) => void;
   onMoveRight: (columnId: string) => void;
+  viewMode?: BoardViewMode;
 }
 
 export const Column: React.FC<ColumnProps> = ({ 
@@ -36,7 +37,8 @@ export const Column: React.FC<ColumnProps> = ({
   onUpdateColumn,
   onDeleteColumn,
   onMoveLeft,
-  onMoveRight
+  onMoveRight,
+  viewMode = 'normal'
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
@@ -153,6 +155,7 @@ export const Column: React.FC<ColumnProps> = ({
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}
+                viewMode={viewMode}
               />
             ))}
             {provided.placeholder}

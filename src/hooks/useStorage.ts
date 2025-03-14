@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Board } from '../types';
+import { Board, BoardViewMode } from '../types';
 
 const STORAGE_KEY = 'quickmanage_board';
+const VIEW_MODE_KEY = 'quickmanage_view_mode';
 
 export const useStorage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -26,10 +27,22 @@ export const useStorage = () => {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  // Métodos para el modo de visualización
+  const saveViewMode = (mode: BoardViewMode): void => {
+    localStorage.setItem(VIEW_MODE_KEY, mode);
+  };
+
+  const loadViewMode = (): BoardViewMode => {
+    const mode = localStorage.getItem(VIEW_MODE_KEY) as BoardViewMode;
+    return mode || 'normal';
+  };
+
   return {
     saveBoard,
     loadBoard,
     clearBoard,
+    saveViewMode,
+    loadViewMode,
     isLoading,
     setIsLoading
   };

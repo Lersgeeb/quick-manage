@@ -1,6 +1,6 @@
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Task as TaskType } from '../types';
+import { Task as TaskType, BoardViewMode } from '../types';
 import { TagBadge } from './TagBadge';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,9 +13,17 @@ interface TaskProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onViewDetails: (id: string) => void;
+  viewMode?: BoardViewMode;
 }
 
-export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete, onViewDetails }) => {
+export const Task: React.FC<TaskProps> = ({ 
+  task, 
+  index, 
+  onEdit, 
+  onDelete, 
+  onViewDetails,
+  viewMode = 'normal'
+}) => {
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
@@ -59,14 +67,16 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete, onVie
                   <EditIcon fontSize="small" />
                 </button>
               </Tooltip>
-              <Tooltip title="Eliminar">
-                <button 
-                  onClick={() => onDelete(task.id)}
-                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
-                >
-                  <DeleteIcon fontSize="small" />
-                </button>
-              </Tooltip>
+              {viewMode === 'normal' && (
+                <Tooltip title="Eliminar">
+                  <button 
+                    onClick={() => onDelete(task.id)}
+                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </button>
+                </Tooltip>
+              )}
             </div>
           </div>
           

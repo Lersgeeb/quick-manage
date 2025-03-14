@@ -28,4 +28,8 @@ export interface Column {
 
 export interface Board {
   columns: Column[];
+  presentationColumns?: Column[]; // Columnas para el modo presentación
 }
+
+// Modo de visualización del tablero
+export type BoardViewMode = 'normal' | 'presentation';
