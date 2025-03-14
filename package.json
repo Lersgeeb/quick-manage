@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://lersgeeb.github.io/quickmanage",
+  "homepage": "https://lersgeeb.github.io/quick-manage",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
