@@ -7,6 +7,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldLess';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldMore';
 import Tooltip from '@mui/material/Tooltip';
 
 interface TaskProps {
@@ -16,6 +18,8 @@ interface TaskProps {
   onDelete: (id: string) => void;
   onViewDetails: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
+  onToggleMinimize?: (id: string) => void;
+  isMinimized?: boolean;
   viewMode?: BoardViewMode;
   showHiddenTasks?: boolean;
 }
@@ -27,6 +31,8 @@ export const Task: React.FC<TaskProps> = ({
   onDelete, 
   onViewDetails,
   onToggleVisibility,
+  onToggleMinimize,
+  isMinimized = false,
   viewMode = 'normal',
   showHiddenTasks = false
 }) => {
@@ -50,72 +56,163 @@ export const Task: React.FC<TaskProps> = ({
           className={`p-4 mb-3 bg-white dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 
             ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 rotate-1' : ''}
             ${isHidden && showHiddenTasks ? 'opacity-50 border-dashed' : ''}
+            ${isMinimized ? 'py-2' : 'py-4'} 
             transition-all duration-200 hover:shadow-md cursor-grab active:cursor-grabbing`}
         >
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium text-gray-800 dark:text-gray-100">
-              {task.title}
-              {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
-            </h3>
-            <div 
-              className="flex space-x-1"
-              onClick={e => e.stopPropagation()}
-              {...provided.dragHandleProps && {}} // Esto elimina el comportamiento de arrastre en los botones
-            >
-              <Tooltip title="Ver detalles">
-                <button 
-                  onClick={() => onViewDetails(task.id)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+          {/* When minimized, use a single row with all elements aligned */}
+          {isMinimized ? (
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                {tagToShow && <TagBadge tag={tagToShow} color={colorToShow} />}
+                <h3 className="font-medium text-gray-800 dark:text-gray-100">
+                  {task.title}
+                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
+                </h3>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {referenceToShow && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    {referenceToShow}
+                  </span>
+                )}
+                
+                <div 
+                  className="flex space-x-1 items-center"
+                  onClick={e => e.stopPropagation()}
+                  {...provided.dragHandleProps && {}}
                 >
-                  <MoreHorizIcon fontSize="small" />
-                </button>
-              </Tooltip>
-              <Tooltip title="Editar">
-                <button 
-                  onClick={() => onEdit(task.id)}
-                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
-                >
-                  <EditIcon fontSize="small" />
-                </button>
-              </Tooltip>
-              {viewMode === 'normal' && (
-                <>
-                  <Tooltip title={isHidden ? "Mostrar tarea" : "Ocultar tarea"}>
+                  {onToggleMinimize && (
+                    <Tooltip title={isMinimized ? "Expandir" : "Minimizar"}>
+                      <button 
+                        onClick={() => onToggleMinimize(task.id)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                      >
+                        {isMinimized ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
+                      </button>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Ver detalles">
                     <button 
-                      onClick={() => onToggleVisibility && onToggleVisibility(task.id)}
-                      className={`${isHidden 
-                        ? "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" 
-                        : "text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                      } p-1 cursor-pointer`}
+                      onClick={() => onViewDetails(task.id)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
                     >
-                      {isHidden ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                      <MoreHorizIcon fontSize="small" />
                     </button>
                   </Tooltip>
-                  <Tooltip title="Eliminar">
+                  <Tooltip title="Editar">
                     <button 
-                      onClick={() => onDelete(task.id)}
-                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
+                      onClick={() => onEdit(task.id)}
+                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
                     >
-                      <DeleteIcon fontSize="small" />
+                      <EditIcon fontSize="small" />
                     </button>
                   </Tooltip>
-                </>
-              )}
+                  {viewMode === 'normal' && (
+                    <>
+                      <Tooltip title={isHidden ? "Mostrar tarea" : "Ocultar tarea"}>
+                        <button 
+                          onClick={() => onToggleVisibility && onToggleVisibility(task.id)}
+                          className={`${isHidden 
+                            ? "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" 
+                            : "text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                          } p-1 cursor-pointer`}
+                        >
+                          {isHidden ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                        </button>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <button 
+                          onClick={() => onDelete(task.id)}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </button>
+                      </Tooltip>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-          
-          {task.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{task.description}</p>
+          ) : (
+            // Regular expanded view
+            <>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-medium text-gray-800 dark:text-gray-100">
+                  {task.title}
+                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
+                </h3>
+                <div 
+                  className="flex space-x-1"
+                  onClick={e => e.stopPropagation()}
+                  {...provided.dragHandleProps && {}}
+                >
+                  {onToggleMinimize && (
+                    <Tooltip title="Minimizar">
+                      <button 
+                        onClick={() => onToggleMinimize(task.id)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                      >
+                        <UnfoldLessIcon fontSize="small" />
+                      </button>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Ver detalles">
+                    <button 
+                      onClick={() => onViewDetails(task.id)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                    >
+                      <MoreHorizIcon fontSize="small" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title="Editar">
+                    <button 
+                      onClick={() => onEdit(task.id)}
+                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
+                    >
+                      <EditIcon fontSize="small" />
+                    </button>
+                  </Tooltip>
+                  {viewMode === 'normal' && (
+                    <>
+                      <Tooltip title={isHidden ? "Mostrar tarea" : "Ocultar tarea"}>
+                        <button 
+                          onClick={() => onToggleVisibility && onToggleVisibility(task.id)}
+                          className={`${isHidden 
+                            ? "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" 
+                            : "text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                          } p-1 cursor-pointer`}
+                        >
+                          {isHidden ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                        </button>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <button 
+                          onClick={() => onDelete(task.id)}
+                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </button>
+                      </Tooltip>
+                    </>
+                  )}
+                </div>
+              </div>
+            
+              {task.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{task.description}</p>
+              )}
+            
+              <div className="flex justify-between items-center">
+                <TagBadge tag={tagToShow} color={colorToShow} />
+                {referenceToShow && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    {referenceToShow}
+                  </span>
+                )}
+              </div>
+            </>
           )}
-          
-          <div className="flex justify-between items-center">
-            <TagBadge tag={tagToShow} color={colorToShow} />
-            {referenceToShow && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                {referenceToShow}
-              </span>
-            )}
-          </div>
         </div>
       )}
     </Draggable>

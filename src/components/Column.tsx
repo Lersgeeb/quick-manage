@@ -26,6 +26,8 @@ interface ColumnProps {
   onMoveRight: (columnId: string) => void;
   viewMode?: BoardViewMode;
   onToggleTaskVisibility?: (taskId: string) => void;
+  onToggleMinimize?: (taskId: string) => void;
+  minimizedTasks?: Set<string>;
   showHiddenTasks?: boolean;
 }
 
@@ -42,6 +44,8 @@ export const Column: React.FC<ColumnProps> = ({
   onMoveRight,
   viewMode = 'normal',
   onToggleTaskVisibility,
+  onToggleMinimize,
+  minimizedTasks = new Set(),
   showHiddenTasks = false
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -159,8 +163,10 @@ export const Column: React.FC<ColumnProps> = ({
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}
-                viewMode={viewMode}
                 onToggleVisibility={onToggleTaskVisibility}
+                onToggleMinimize={onToggleMinimize}
+                isMinimized={minimizedTasks.has(task.id)}
+                viewMode={viewMode}
                 showHiddenTasks={showHiddenTasks}
               />
             ))}

@@ -24,6 +24,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import Tooltip from '@mui/material/Tooltip';
 
 export const Board: React.FC = () => {
   const { darkMode } = useTheme();
@@ -53,6 +56,8 @@ export const Board: React.FC = () => {
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
+  const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
+  const [allTasksMinimized, setAllTasksMinimized] = useState(false);
   
   // Estado para el modal de task form
   const [taskModal, setTaskModal] = useState<{
@@ -346,6 +351,38 @@ export const Board: React.FC = () => {
     toggleTaskVisibility(taskId);
   };
 
+  // Toggle minimization for a single task
+  const toggleTaskMinimization = (taskId: string) => {
+    setMinimizedTasks(prev => {
+      const newMinimized = new Set(prev);
+      if (newMinimized.has(taskId)) {
+        newMinimized.delete(taskId);
+      } else {
+        newMinimized.add(taskId);
+      }
+      return newMinimized;
+    });
+  };
+
+  // Toggle minimization for all tasks
+  const toggleAllTasksMinimization = () => {
+    if (allTasksMinimized) {
+      setMinimizedTasks(new Set());
+      setAllTasksMinimized(false);
+    } else {
+      // Minimize all tasks
+      const allTaskIds = new Set<string>();
+      const currentColumns = getCurrentColumns();
+      currentColumns.forEach(col => {
+        col.tasks.forEach(task => {
+          allTaskIds.add(task.id);
+        });
+      });
+      setMinimizedTasks(allTaskIds);
+      setAllTasksMinimized(true);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen dark:bg-gray-900">
@@ -387,7 +424,20 @@ export const Board: React.FC = () => {
           )}
         </div>
         
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
+          {/* Toggle for minimizing all tasks */}
+          <Tooltip title={allTasksMinimized ? "Expandir todas" : "Minimizar todas"}>
+            <Button 
+              onClick={toggleAllTasksMinimization}
+              size="small"
+              variant="outlined"
+              color="primary"
+              startIcon={allTasksMinimized ? <UnfoldMoreIcon /> : <UnfoldLessIcon />}
+            >
+              {allTasksMinimized ? "Expandir" : "Minimizar"}
+            </Button>
+          </Tooltip>
+          
           {/* Toggle for hidden tasks */}
           <FormControlLabel
             control={
@@ -414,7 +464,7 @@ export const Board: React.FC = () => {
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
       >
-        <div className="flex gap-0 overflow-x-auto pb-4 h-[calc(100vh-180px)] w-full">
+        <div className="flex gap-0 overflow-x-auto pb-4 h-[calc(100vh-180px)] w-full custom-scrollbar">
           {columnsToRender
             .sort((a, b) => a.order - b.order)
             .map((column) => (
@@ -431,6 +481,8 @@ export const Board: React.FC = () => {
                 onMoveLeft={moveColumnLeft}
                 onMoveRight={moveColumnRight}
                 onToggleTaskVisibility={handleToggleTaskVisibility}
+                onToggleMinimize={toggleTaskMinimization}
+                minimizedTasks={minimizedTasks}
                 viewMode={viewMode}
                 showHiddenTasks={showHiddenTasks}
               />
