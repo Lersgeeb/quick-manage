@@ -4,7 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>QuickManage</title>
+    <script type="text/javascript">
+      // Código para manejar rutas en GitHub Pages
+      (function() {
+        // Verificar si estamos en GitHub Pages (usando la URL)
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const basePathName = isGitHubPages ? '/quick-manage/' : '/';
+        
+        // Obtener y procesar parámetros de URL para manejo de rutas
+        const query = window.location.search;
+        const urlParams = new URLSearchParams(query);
+        const path = urlParams.get('path');
+        
+        if (path) {
+          // Elimina los parámetros de búsqueda para tener una URL limpia
+          history.replaceState(null, null, basePathName + path);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

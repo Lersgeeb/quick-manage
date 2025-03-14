@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickManage</title>
+  <script>
+    // Redirigir a la página principal pero preservando los parámetros de la URL
+    const path = window.location.pathname.split('/');
+    const repo = 'quick-manage'; // Corregido para usar el nombre exacto del repositorio
+    const restPath = path.slice(path.indexOf(repo) + 1).join('/');
+    window.location.replace(`/${repo}/?path=${restPath}`);
+  </script>
+</head>
+<body>
+  <p>Redirigiendo...</p>
+</body>
+</html>
