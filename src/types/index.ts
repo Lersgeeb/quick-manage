@@ -1,3 +1,10 @@
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -9,6 +16,7 @@ export interface Task {
   order: number;
   createdAt: string;
   updatedAt: string;
+  comments?: Comment[]; // Array de comentarios
 }
 
 export interface Column {

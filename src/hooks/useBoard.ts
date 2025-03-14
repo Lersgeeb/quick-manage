@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task } from '../types';
+import { Board, Column, Task, Comment } from '../types';
 import { useStorage } from './useStorage';
 
 export const useBoard = () => {
@@ -199,6 +199,91 @@ export const useBoard = () => {
     });
   };
 
+  // Funciones para manejar comentarios
+  const addComment = (taskId: string, commentText: string) => {
+    const now = new Date().toISOString();
+    const newComment: Comment = {
+      id: uuidv4(),
+      text: commentText,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    setBoard(prev => {
+      const updatedColumns = prev.columns.map(col => {
+        const updatedTasks = col.tasks.map(task => {
+          if (task.id === taskId) {
+            // Inicializar array de comentarios si no existe
+            const comments = task.comments || [];
+            return { 
+              ...task, 
+              comments: [...comments, newComment],
+              updatedAt: now
+            };
+          }
+          return task;
+        });
+        
+        return { ...col, tasks: updatedTasks };
+      });
+      
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
+  const updateComment = (taskId: string, commentId: string, newText: string) => {
+    const now = new Date().toISOString();
+    
+    setBoard(prev => {
+      const updatedColumns = prev.columns.map(col => {
+        const updatedTasks = col.tasks.map(task => {
+          if (task.id === taskId && task.comments) {
+            const updatedComments = task.comments.map(comment => {
+              if (comment.id === commentId) {
+                return { ...comment, text: newText, updatedAt: now };
+              }
+              return comment;
+            });
+            
+            return { 
+              ...task, 
+              comments: updatedComments,
+              updatedAt: now
+            };
+          }
+          return task;
+        });
+        
+        return { ...col, tasks: updatedTasks };
+      });
+      
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
+  const deleteComment = (taskId: string, commentId: string) => {
+    const now = new Date().toISOString();
+    
+    setBoard(prev => {
+      const updatedColumns = prev.columns.map(col => {
+        const updatedTasks = col.tasks.map(task => {
+          if (task.id === taskId && task.comments) {
+            return { 
+              ...task, 
+              comments: task.comments.filter(comment => comment.id !== commentId),
+              updatedAt: now
+            };
+          }
+          return task;
+        });
+        
+        return { ...col, tasks: updatedTasks };
+      });
+      
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
   return {
     board,
     isLoading,
@@ -210,6 +295,9 @@ export const useBoard = () => {
     deleteTask,
     moveTask,
     moveColumnLeft,
-    moveColumnRight
+    moveColumnRight,
+    addComment,
+    updateComment,
+    deleteComment
   };
 };

@@ -19,6 +19,7 @@ interface ColumnProps {
   onAddTask: (columnId: string) => void;
   onEditTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onViewDetails: (taskId: string) => void; // Nueva prop para ver detalles
   onUpdateColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
   onMoveLeft: (columnId: string) => void;
@@ -31,6 +32,7 @@ export const Column: React.FC<ColumnProps> = ({
   onAddTask, 
   onEditTask, 
   onDeleteTask,
+  onViewDetails, // Nueva prop
   onUpdateColumn,
   onDeleteColumn,
   onMoveLeft,
@@ -150,6 +152,7 @@ export const Column: React.FC<ColumnProps> = ({
                 index={index}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
+                onViewDetails={onViewDetails}
               />
             ))}
             {provided.placeholder}

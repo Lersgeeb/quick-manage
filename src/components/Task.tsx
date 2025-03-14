@@ -4,15 +4,18 @@ import { Task as TaskType } from '../types';
 import { TagBadge } from './TagBadge';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Tooltip from '@mui/material/Tooltip';
 
 interface TaskProps {
   task: TaskType;
   index: number;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewDetails: (id: string) => void;
 }
 
-export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => {
+export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete, onViewDetails }) => {
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
@@ -40,18 +43,30 @@ export const Task: React.FC<TaskProps> = ({ task, index, onEdit, onDelete }) => 
               onClick={e => e.stopPropagation()}
               {...provided.dragHandleProps && {}} // Esto elimina el comportamiento de arrastre en los botones
             >
-              <button 
-                onClick={() => onEdit(task.id)}
-                className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
-              >
-                <EditIcon fontSize="small" />
-              </button>
-              <button 
-                onClick={() => onDelete(task.id)}
-                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
-              >
-                <DeleteIcon fontSize="small" />
-              </button>
+              <Tooltip title="Ver detalles">
+                <button 
+                  onClick={() => onViewDetails(task.id)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                >
+                  <MoreHorizIcon fontSize="small" />
+                </button>
+              </Tooltip>
+              <Tooltip title="Editar">
+                <button 
+                  onClick={() => onEdit(task.id)}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
+                >
+                  <EditIcon fontSize="small" />
+                </button>
+              </Tooltip>
+              <Tooltip title="Eliminar">
+                <button 
+                  onClick={() => onDelete(task.id)}
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
+                >
+                  <DeleteIcon fontSize="small" />
+                </button>
+              </Tooltip>
             </div>
           </div>
           

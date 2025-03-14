@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { Column } from './Column';
 import { ImportExport } from './ImportExport';
 import { TagFilter } from './TagFilter';
 import { TaskFormModal } from './TaskFormModal';
+import { TaskDetailsModal } from './TaskDetailsModal';
 import { ThemeToggle } from './ThemeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
@@ -32,7 +33,10 @@ export const Board: React.FC = () => {
     deleteTask, 
     moveTask,
     moveColumnLeft,
-    moveColumnRight
+    moveColumnRight,
+    addComment,
+    updateComment,
+    deleteComment
   } = useBoard();
   
   const { handleDragEnd, handleDragStart } = useDragDrop(moveTask);
@@ -48,6 +52,35 @@ export const Board: React.FC = () => {
   }>({
     open: false
   });
+
+  // Estado para el modal de detalles
+  const [detailsModal, setDetailsModal] = useState<{
+    open: boolean;
+    task: Task | null;
+  }>({
+    open: false,
+    task: null
+  });
+
+  // Efecto para actualizar la tarea en el modal de detalles cuando cambia el board
+  useEffect(() => {
+    if (detailsModal.open && detailsModal.task) {
+      // Buscar la tarea actualizada por ID
+      let updatedTask: Task | null = null;
+      
+      board.columns.forEach(col => {
+        const task = col.tasks.find(t => t.id === detailsModal.task?.id);
+        if (task) {
+          updatedTask = task;
+        }
+      });
+      
+      // Si se encuentra la tarea actualizada, actualizar el estado del modal
+      if (updatedTask) {
+        setDetailsModal({ open: true, task: updatedTask });
+      }
+    }
+  }, [board]);
 
   // Abrir modal para crear tarea
   const handleOpenAddTaskModal = (columnId: string) => {
@@ -73,9 +106,31 @@ export const Board: React.FC = () => {
     }
   };
 
-  // Cerrar modal
+  // Abrir modal de detalles
+  const handleOpenDetailsModal = (taskId: string) => {
+    // Buscar la tarea por ID
+    let taskToView: Task | null = null;
+    
+    board.columns.forEach(col => {
+      const task = col.tasks.find(t => t.id === taskId);
+      if (task) {
+        taskToView = task;
+      }
+    });
+    
+    if (taskToView) {
+      setDetailsModal({ open: true, task: taskToView });
+    }
+  };
+
+  // Cerrar modal de tarea
   const handleCloseTaskModal = () => {
     setTaskModal({ open: false });
+  };
+
+  // Cerrar modal de detalles
+  const handleCloseDetailsModal = () => {
+    setDetailsModal({ open: false, task: null });
   };
 
   // Manejar submit del formulario
@@ -89,6 +144,69 @@ export const Board: React.FC = () => {
     } else if (columnId) {
       // Crear nueva tarea
       addTask(columnId, taskData);
+    }
+  };
+
+  // Manejadores específicos para comentarios con actualización inmediata de UI
+  const handleAddComment = (taskId: string, commentText: string) => {
+    addComment(taskId, commentText);
+    
+    // Buscar la tarea actualizada si el modal está abierto
+    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
+      const task = detailsModal.task;
+      const now = new Date().toISOString();
+      
+      // Crear un nuevo comentario localmente
+      const newComment = {
+        id: crypto.randomUUID(), // Generamos un ID temporal
+        text: commentText,
+        createdAt: now,
+        updatedAt: now
+      };
+      
+      // Actualizar el estado local de la tarea en el modal
+      const updatedComments = [...(task.comments || []), newComment];
+      const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
+      
+      // Actualizar el estado del modal con la tarea actualizada
+      setDetailsModal({ open: true, task: updatedTask });
+    }
+  };
+
+  const handleUpdateComment = (taskId: string, commentId: string, newText: string) => {
+    updateComment(taskId, commentId, newText);
+    
+    // Actualizar el estado local si es necesario
+    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
+      const task = detailsModal.task;
+      const now = new Date().toISOString();
+      
+      if (task.comments) {
+        const updatedComments = task.comments.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, text: newText, updatedAt: now } 
+            : comment
+        );
+        
+        const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
+        setDetailsModal({ open: true, task: updatedTask });
+      }
+    }
+  };
+
+  const handleDeleteComment = (taskId: string, commentId: string) => {
+    deleteComment(taskId, commentId);
+    
+    // Actualizar el estado local si es necesario
+    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
+      const task = detailsModal.task;
+      const now = new Date().toISOString();
+      
+      if (task.comments) {
+        const updatedComments = task.comments.filter(comment => comment.id !== commentId);
+        const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
+        setDetailsModal({ open: true, task: updatedTask });
+      }
     }
   };
 
@@ -187,6 +305,7 @@ export const Board: React.FC = () => {
                 onAddTask={() => handleOpenAddTaskModal(column.id)}
                 onEditTask={handleOpenEditTaskModal}
                 onDeleteTask={deleteTask}
+                onViewDetails={handleOpenDetailsModal}
                 onUpdateColumn={updateColumn}
                 onDeleteColumn={deleteColumn}
                 onMoveLeft={moveColumnLeft}
@@ -203,6 +322,16 @@ export const Board: React.FC = () => {
         columnId={taskModal.columnId}
         onClose={handleCloseTaskModal}
         onSubmit={handleTaskFormSubmit}
+      />
+
+      {/* Modal para ver detalles de tarea */}
+      <TaskDetailsModal
+        open={detailsModal.open}
+        task={detailsModal.task}
+        onClose={handleCloseDetailsModal}
+        onAddComment={handleAddComment}
+        onEditComment={handleUpdateComment}
+        onDeleteComment={handleDeleteComment}
       />
 
       {/* Dialog para agregar nueva columna */}
