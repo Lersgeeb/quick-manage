@@ -20,6 +20,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 export const Board: React.FC = () => {
   const { darkMode } = useTheme();
@@ -40,13 +44,15 @@ export const Board: React.FC = () => {
     moveColumnRight,
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    toggleTaskVisibility
   } = useBoard();
   
   const { handleDragEnd, handleDragStart } = useDragDrop(moveTask);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showHiddenTasks, setShowHiddenTasks] = useState(false);
   
   // Estado para el modal de task form
   const [taskModal, setTaskModal] = useState<{
@@ -117,13 +123,24 @@ export const Board: React.FC = () => {
     // Buscar la tarea por ID
     let taskToView: Task | null = null;
     
-    const currentColumns = getCurrentColumns();
-    currentColumns.forEach(col => {
-      const task = col.tasks.find(t => t.id === taskId);
-      if (task) {
-        taskToView = task;
-      }
-    });
+    // En modo presentación, buscar la tarea en las columnas normales para tener todos los detalles
+    if (viewMode === 'presentation') {
+      board.columns.forEach(col => {
+        const task = col.tasks.find(t => t.id === taskId);
+        if (task) {
+          taskToView = task;
+        }
+      });
+    } else {
+      // En modo normal, buscar en las columnas actuales
+      const currentColumns = getCurrentColumns();
+      currentColumns.forEach(col => {
+        const task = col.tasks.find(t => t.id === taskId);
+        if (task) {
+          taskToView = task;
+        }
+      });
+    }
     
     if (taskToView) {
       setDetailsModal({ open: true, task: taskToView });
@@ -242,11 +259,17 @@ export const Board: React.FC = () => {
     })).sort((a, b) => a.tag.localeCompare(b.tag));
   }, [board]);
   
-  // Filter tasks by selected tag
+  // Filter tasks by selected tag and visibility
   const getFilteredTasks = (tasks: Task[]) => {
-    if (!selectedTag) return tasks;
-    
     return tasks.filter(task => {
+      // Filter by visibility
+      if (!showHiddenTasks && task.hidden) {
+        return false;
+      }
+      
+      // Filter by tag
+      if (!selectedTag) return true;
+      
       // Handle both new and legacy properties
       const taskTag = task.tag || (task as any).client || '';
       return taskTag === selectedTag;
@@ -263,6 +286,12 @@ export const Board: React.FC = () => {
       
       board.columns.forEach(normalCol => {
         const tasksForColumn = normalCol.tasks.filter(task => {
+          // Apply visibility filter
+          if (!showHiddenTasks && task.hidden) {
+            return false;
+          }
+          
+          // Apply tag filter
           if (selectedTag) {
             const taskTag = task.tag || (task as any).client || '';
             return taskTag === selectedTag;
@@ -273,7 +302,6 @@ export const Board: React.FC = () => {
         allFilteredTasks.push(...tasksForColumn);
       });
       
-      // First check if tasks are already distributed in presentation columns
       const existingTaskIds = new Set<string>();
       currentColumns.forEach(col => {
         col.tasks.forEach(task => existingTaskIds.add(task.id));
@@ -303,7 +331,7 @@ export const Board: React.FC = () => {
     
     // For normal mode, just return the columns
     return currentColumns;
-  }, [board, viewMode, selectedTag, getCurrentColumns]);
+  }, [board, viewMode, selectedTag, getCurrentColumns, showHiddenTasks]);
   
   const handleAddColumn = () => {
     if (newColumnTitle.trim()) {
@@ -311,6 +339,11 @@ export const Board: React.FC = () => {
       setNewColumnTitle('');
       setIsAddingColumn(false);
     }
+  };
+
+  // Handle visibility toggle for task
+  const handleToggleTaskVisibility = (taskId: string) => {
+    toggleTaskVisibility(taskId);
   };
 
   if (isLoading) {
@@ -342,15 +375,39 @@ export const Board: React.FC = () => {
         </div>
       </div>
 
-      {/* Tag Filter - ahora como selector desplegable */}
-      <div className="flex items-center justify-start mb-2">
-        {uniqueTags.length > 0 && (
-          <TagFilter
-            tags={uniqueTags}
-            selectedTag={selectedTag}
-            onTagSelect={setSelectedTag}
+      {/* Filters row */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          {uniqueTags.length > 0 && (
+            <TagFilter
+              tags={uniqueTags}
+              selectedTag={selectedTag}
+              onTagSelect={setSelectedTag}
+            />
+          )}
+        </div>
+        
+        <div className="flex items-center">
+          {/* Toggle for hidden tasks */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showHiddenTasks}
+                onChange={(e) => setShowHiddenTasks(e.target.checked)}
+                color="primary"
+                icon={<VisibilityOffIcon />}
+                checkedIcon={<VisibilityIcon />}
+              />
+            }
+            label={showHiddenTasks ? "Mostrando tareas ocultas" : "Tareas ocultas: OFF"}
+            sx={{ 
+              color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+              '.MuiSwitch-track': {
+                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.3)' : undefined
+              }
+            }}
           />
-        )}
+        </div>
       </div>
 
       <DragDropContext 
@@ -373,7 +430,9 @@ export const Board: React.FC = () => {
                 onDeleteColumn={deleteColumn}
                 onMoveLeft={moveColumnLeft}
                 onMoveRight={moveColumnRight}
+                onToggleTaskVisibility={handleToggleTaskVisibility}
                 viewMode={viewMode}
+                showHiddenTasks={showHiddenTasks}
               />
             ))}
         </div>

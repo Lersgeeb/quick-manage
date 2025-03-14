@@ -25,6 +25,8 @@ interface ColumnProps {
   onMoveLeft: (columnId: string) => void;
   onMoveRight: (columnId: string) => void;
   viewMode?: BoardViewMode;
+  onToggleTaskVisibility?: (taskId: string) => void;
+  showHiddenTasks?: boolean;
 }
 
 export const Column: React.FC<ColumnProps> = ({ 
@@ -38,7 +40,9 @@ export const Column: React.FC<ColumnProps> = ({
   onDeleteColumn,
   onMoveLeft,
   onMoveRight,
-  viewMode = 'normal'
+  viewMode = 'normal',
+  onToggleTaskVisibility,
+  showHiddenTasks = false
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
@@ -156,6 +160,8 @@ export const Column: React.FC<ColumnProps> = ({
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}
                 viewMode={viewMode}
+                onToggleVisibility={onToggleTaskVisibility}
+                showHiddenTasks={showHiddenTasks}
               />
             ))}
             {provided.placeholder}

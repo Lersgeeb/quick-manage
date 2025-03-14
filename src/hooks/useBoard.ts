@@ -508,6 +508,28 @@ export const useBoard = () => {
     });
   };
 
+  // Función para cambiar la visibilidad de una tarea
+  const toggleTaskVisibility = (taskId: string) => {
+    setBoard(prev => {
+      const updatedColumns = prev.columns.map(col => {
+        const updatedTasks = col.tasks.map(task => {
+          if (task.id === taskId) {
+            return { 
+              ...task, 
+              hidden: !task.hidden,
+              updatedAt: new Date().toISOString() 
+            };
+          }
+          return task;
+        });
+        
+        return { ...col, tasks: updatedTasks };
+      });
+      
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
   return {
     board,
     viewMode,
@@ -526,6 +548,7 @@ export const useBoard = () => {
     moveColumnRight,
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    toggleTaskVisibility
   };
 };
