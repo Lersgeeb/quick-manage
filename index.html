@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QuickManage</title>
     <script type="text/javascript">
-      // Código para manejar rutas en GitHub Pages
+      // Código mejorado para manejar rutas en GitHub Pages
       (function() {
         // Verificar si estamos en GitHub Pages (usando la URL)
         const isGitHubPages = window.location.hostname.includes('github.io');
@@ -18,12 +18,15 @@
         const path = urlParams.get('path');
         
         if (path) {
+          console.log('Procesando redirección de ruta:', path);
           // Elimina los parámetros de búsqueda para tener una URL limpia
           history.replaceState(null, null, basePathName + path);
+        } else {
+          console.log('No hay parámetros de ruta. Base path:', basePathName);
         }
       })();
     </script>
-    <script type="module" crossorigin src="/quick-manage/assets/index-c7011771.js"></script>
+    <script type="module" crossorigin src="/quick-manage/assets/index-646cb284.js"></script>
     <link rel="stylesheet" href="/quick-manage/assets/index-cdc98454.css">
   </head>
   <body>

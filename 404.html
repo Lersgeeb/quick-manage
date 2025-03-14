@@ -7,8 +7,9 @@
   <script>
     // Redirigir a la página principal pero preservando los parámetros de la URL
     const path = window.location.pathname.split('/');
-    const repo = 'quick-manage'; // Corregido para usar el nombre exacto del repositorio
+    const repo = 'quick-manage'; // Ya está correcto
     const restPath = path.slice(path.indexOf(repo) + 1).join('/');
+    console.log('Redirigiendo desde 404. Path:', restPath);
     window.location.replace(`/${repo}/?path=${restPath}`);
   </script>
 </head>
