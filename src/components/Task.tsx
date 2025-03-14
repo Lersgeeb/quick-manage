@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { Task as TaskType, BoardViewMode } from '../types';
 import { TagBadge } from './TagBadge';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldMore';
 import Tooltip from '@mui/material/Tooltip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 interface TaskProps {
   task: TaskType;
@@ -41,6 +46,24 @@ export const Task: React.FC<TaskProps> = ({
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
   const referenceToShow = task.reference || '';
   const isHidden = task.hidden || false;
+  
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  
+  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleAction = (action: () => void) => {
+    action();
+    handleCloseMenu();
+  };
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -70,68 +93,63 @@ export const Task: React.FC<TaskProps> = ({
                 </h3>
               </div>
               
-              <div className="flex items-center gap-2">
-                {referenceToShow && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                    {referenceToShow}
-                  </span>
-                )}
-                
-                <div 
-                  className="flex space-x-1 items-center"
-                  onClick={e => e.stopPropagation()}
-                  {...provided.dragHandleProps && {}}
+              <div 
+                onClick={e => e.stopPropagation()}
+                {...provided.dragHandleProps && {}}
+              >
+                <Tooltip title="Opciones">
+                  <button 
+                    onClick={handleOpenMenu}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
+                  >
+                    <MoreVertIcon fontSize="small" />
+                  </button>
+                </Tooltip>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleCloseMenu}
                 >
                   {onToggleMinimize && (
-                    <Tooltip title={isMinimized ? "Expandir" : "Minimizar"}>
-                      <button 
-                        onClick={() => onToggleMinimize(task.id)}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
-                      >
+                    <MenuItem onClick={() => handleAction(() => onToggleMinimize(task.id))}>
+                      <ListItemIcon>
                         {isMinimized ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
-                      </button>
-                    </Tooltip>
+                      </ListItemIcon>
+                      <ListItemText>{isMinimized ? "Expandir" : "Minimizar"}</ListItemText>
+                    </MenuItem>
                   )}
-                  <Tooltip title="Ver detalles">
-                    <button 
-                      onClick={() => onViewDetails(task.id)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
-                    >
+                  <MenuItem onClick={() => handleAction(() => onViewDetails(task.id))}>
+                    <ListItemIcon>
                       <MoreHorizIcon fontSize="small" />
-                    </button>
-                  </Tooltip>
-                  <Tooltip title="Editar">
-                    <button 
-                      onClick={() => onEdit(task.id)}
-                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
-                    >
-                      <EditIcon fontSize="small" />
-                    </button>
-                  </Tooltip>
+                    </ListItemIcon>
+                    <ListItemText>Ver detalles</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
+                    <ListItemIcon>
+                      <EditIcon fontSize="small" className="text-blue-500" />
+                    </ListItemIcon>
+                    <ListItemText>Editar</ListItemText>
+                  </MenuItem>
                   {viewMode === 'normal' && (
                     <>
-                      <Tooltip title={isHidden ? "Mostrar tarea" : "Ocultar tarea"}>
-                        <button 
-                          onClick={() => onToggleVisibility && onToggleVisibility(task.id)}
-                          className={`${isHidden 
-                            ? "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" 
-                            : "text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                          } p-1 cursor-pointer`}
-                        >
-                          {isHidden ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
-                        </button>
-                      </Tooltip>
-                      <Tooltip title="Eliminar">
-                        <button 
-                          onClick={() => onDelete(task.id)}
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </button>
-                      </Tooltip>
+                      <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
+                        <ListItemIcon>
+                          {isHidden ? 
+                            <VisibilityIcon fontSize="small" /> : 
+                            <VisibilityOffIcon fontSize="small" className="text-purple-500" />
+                          }
+                        </ListItemIcon>
+                        <ListItemText>{isHidden ? "Mostrar tarea" : "Ocultar tarea"}</ListItemText>
+                      </MenuItem>
+                      <MenuItem onClick={() => handleAction(() => onDelete(task.id))}>
+                        <ListItemIcon>
+                          <DeleteIcon fontSize="small" className="text-red-500" />
+                        </ListItemIcon>
+                        <ListItemText>Eliminar</ListItemText>
+                      </MenuItem>
                     </>
                   )}
-                </div>
+                </Menu>
               </div>
             </div>
           ) : (
@@ -143,59 +161,62 @@ export const Task: React.FC<TaskProps> = ({
                   {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
                 </h3>
                 <div 
-                  className="flex space-x-1"
                   onClick={e => e.stopPropagation()}
                   {...provided.dragHandleProps && {}}
                 >
-                  {onToggleMinimize && (
-                    <Tooltip title="Minimizar">
-                      <button 
-                        onClick={() => onToggleMinimize(task.id)}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
-                      >
-                        <UnfoldLessIcon fontSize="small" />
-                      </button>
-                    </Tooltip>
-                  )}
-                  <Tooltip title="Ver detalles">
+                  <Tooltip title="Opciones">
                     <button 
-                      onClick={() => onViewDetails(task.id)}
+                      onClick={handleOpenMenu}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
                     >
-                      <MoreHorizIcon fontSize="small" />
+                      <MoreVertIcon fontSize="small" />
                     </button>
                   </Tooltip>
-                  <Tooltip title="Editar">
-                    <button 
-                      onClick={() => onEdit(task.id)}
-                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1 cursor-pointer"
-                    >
-                      <EditIcon fontSize="small" />
-                    </button>
-                  </Tooltip>
-                  {viewMode === 'normal' && (
-                    <>
-                      <Tooltip title={isHidden ? "Mostrar tarea" : "Ocultar tarea"}>
-                        <button 
-                          onClick={() => onToggleVisibility && onToggleVisibility(task.id)}
-                          className={`${isHidden 
-                            ? "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" 
-                            : "text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                          } p-1 cursor-pointer`}
-                        >
-                          {isHidden ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
-                        </button>
-                      </Tooltip>
-                      <Tooltip title="Eliminar">
-                        <button 
-                          onClick={() => onDelete(task.id)}
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 cursor-pointer"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </button>
-                      </Tooltip>
-                    </>
-                  )}
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleCloseMenu}
+                  >
+                    {onToggleMinimize && (
+                      <MenuItem onClick={() => handleAction(() => onToggleMinimize(task.id))}>
+                        <ListItemIcon>
+                          <UnfoldLessIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Minimizar</ListItemText>
+                      </MenuItem>
+                    )}
+                    <MenuItem onClick={() => handleAction(() => onViewDetails(task.id))}>
+                      <ListItemIcon>
+                        <MoreHorizIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>Ver detalles</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
+                      <ListItemIcon>
+                        <EditIcon fontSize="small" className="text-blue-500" />
+                      </ListItemIcon>
+                      <ListItemText>Editar</ListItemText>
+                    </MenuItem>
+                    {viewMode === 'normal' && (
+                      <>
+                        <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
+                          <ListItemIcon>
+                            {isHidden ? 
+                              <VisibilityIcon fontSize="small" /> : 
+                              <VisibilityOffIcon fontSize="small" className="text-purple-500" />
+                            }
+                          </ListItemIcon>
+                          <ListItemText>{isHidden ? "Mostrar tarea" : "Ocultar tarea"}</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={() => handleAction(() => onDelete(task.id))}>
+                          <ListItemIcon>
+                            <DeleteIcon fontSize="small" className="text-red-500" />
+                          </ListItemIcon>
+                          <ListItemText>Eliminar</ListItemText>
+                        </MenuItem>
+                      </>
+                    )}
+                  </Menu>
                 </div>
               </div>
             
