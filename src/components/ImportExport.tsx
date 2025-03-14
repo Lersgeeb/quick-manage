@@ -22,7 +22,7 @@ import Alert from '@mui/material/Alert';
 export const ImportExport: React.FC = () => {
   const { board } = useBoard();
   const { exportBoard, importBoard } = useImportExport();
-  const { clearBoard, saveBoard } = useStorage();
+  const { clearBoard, saveBoard, loadBoard } = useStorage();
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -43,7 +43,9 @@ export const ImportExport: React.FC = () => {
   };
 
   const handleExport = () => {
-    exportBoard(board);
+    // Get the most up-to-date board data from localStorage
+    const latestBoard = loadBoard() || board;
+    exportBoard(latestBoard);
     handleCloseMenu();
     showAlert('Tablero exportado exitosamente', 'success');
   };
