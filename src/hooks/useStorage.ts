@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Board } from '../types';
 
-const STORAGE_KEY = 'quickmanage_board';
+const STORAGE_KEY = 'quick-manage_board';
 
 export const useStorage = () => {
   const [isLoading, setIsLoading] = useState(true);
