@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  overscroll-behavior: none; /* Previene el rebote en iOS */
+}
+
+/* Eliminar las barras de desplazamiento para Chrome, Safari y Opera */
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
+/* Eliminar las barras de desplazamiento para IE, Edge y Firefox */
+.overflow-x-auto {
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Estilo para elementos que están siendo arrastrados */
+.react-beautiful-dnd-dragging {
+  z-index: 9999;
+}
