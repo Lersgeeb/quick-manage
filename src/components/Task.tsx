@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { Task as TaskType, BoardViewMode } from '../types';
 import { TagBadge } from './TagBadge';
@@ -74,6 +74,7 @@ export const Task: React.FC<TaskProps> = ({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          onDoubleClick={() => onViewDetails(task.id)}
           style={{
             ...provided.draggableProps.style,
             transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'translate(0px, 0px)'

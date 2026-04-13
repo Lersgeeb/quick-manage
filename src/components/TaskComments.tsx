@@ -171,6 +171,12 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
                       )}
                     </span>
                   }
+                  sx={{
+                    '.MuiListItemText-primary': {
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }
+                  }}
                 />
               )}
             </ListItem>

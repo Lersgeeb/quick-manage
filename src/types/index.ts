@@ -12,6 +12,7 @@ export interface Task {
   tag: string;
   tagColor: string;
   reference: string; // Nuevo campo para referencia
+  hidden?: boolean;
   columnId: string;
   order: number;
   createdAt: string;

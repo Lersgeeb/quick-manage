@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { useBoard } from '../hooks/useBoard';
 import { useImportExport } from '../hooks/useImportExport';
 import { useStorage } from '../hooks/useStorage';
+import { Board, Task } from '../types';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -19,9 +20,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
-export const ImportExport: React.FC = () => {
-  const { board } = useBoard();
-  const { exportBoard, importBoard } = useImportExport();
+interface ImportExportProps {
+  board: Board;
+  filteredTasks: Task[];
+}
+
+export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks }) => {
+  const { exportBoard, exportTasksCsv, importBoard } = useImportExport();
   const { clearBoard, saveBoard, loadBoard } = useStorage();
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -48,6 +53,20 @@ export const ImportExport: React.FC = () => {
     exportBoard(latestBoard);
     handleCloseMenu();
     showAlert('Tablero exportado exitosamente', 'success');
+  };
+
+  const handleExportCsv = () => {
+    const latestBoard = loadBoard() || board;
+    const allTasks = latestBoard.columns.flatMap(column => column.tasks);
+    exportTasksCsv(allTasks);
+    handleCloseMenu();
+    showAlert('CSV exportado exitosamente', 'success');
+  };
+
+  const handleExportFilteredCsv = () => {
+    exportTasksCsv(filteredTasks, 'quickmanage-tasks-filtered');
+    handleCloseMenu();
+    showAlert('CSV filtrado exportado exitosamente', 'success');
   };
 
   const handleImportClick = () => {
@@ -115,6 +134,20 @@ export const ImportExport: React.FC = () => {
             <FileDownloadIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Exportar tablero</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleExportCsv}>
+          <ListItemIcon>
+            <TableViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Exportar tasks a CSV</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleExportFilteredCsv}>
+          <ListItemIcon>
+            <TableViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Exportar CSV (Filtrado)</ListItemText>
         </MenuItem>
         
         <MenuItem onClick={handleImportClick}>

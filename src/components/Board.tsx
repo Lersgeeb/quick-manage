@@ -341,6 +341,15 @@ export const Board: React.FC = () => {
     return currentColumns;
   }, [board, viewMode, selectedTag, getCurrentColumns, showHiddenTasks]);
 
+  const filteredTasksForExport = useMemo(() => {
+    return columnsToRender
+      .slice()
+      .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
+      .flatMap(column => getFilteredTasks(
+        column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order)
+      ));
+  }, [columnsToRender, showHiddenTasks, selectedTag]);
+
   // Toggle minimization for a single task
   const toggleTaskMinimization = (taskId: string) => {
     setMinimizedTasks(prev => {
@@ -431,7 +440,7 @@ export const Board: React.FC = () => {
         </h1>
         <div className="flex space-x-2 items-center">
           <ThemeToggle />
-          <ImportExport />
+          <ImportExport board={board} filteredTasks={filteredTasksForExport} />
           <PresentationModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
           <Button
             variant="contained"
