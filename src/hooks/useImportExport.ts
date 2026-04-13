@@ -51,6 +51,7 @@ export const useImportExport = () => {
       'Reference',
       'Creation Date',
       'Last Modified Date',
+      'Description',
       'Comments (last 3)'
     ];
 
@@ -65,6 +66,7 @@ export const useImportExport = () => {
         reference,
         formatCsvDate(task.createdAt),
         formatCsvDate(task.updatedAt),
+        task.description || '',
         latestComments
       ].map(value => escapeCsvValue(String(value))).join(',');
     });
