@@ -103,7 +103,10 @@ export const Column: React.FC<ColumnProps> = ({
           </div>
         ) : (
           <>
-            <h2 className="font-bold text-gray-700 dark:text-gray-200">{column.title}</h2>
+            <div className="flex items-center space-x-2">
+              <h2 className="font-bold text-gray-700 dark:text-gray-200">{column.title}</h2>
+              <div className='bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded-xl'>{tasks.length}</div>
+            </div>
             <div className="flex items-center space-x-1">
               <button 
                 onClick={() => onMoveLeft(column.id)}
