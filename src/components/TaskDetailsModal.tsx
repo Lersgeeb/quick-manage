@@ -4,10 +4,24 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { Task } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { TagBadge } from './TagBadge';
 import { TaskComments } from './TaskComments';
+import {
+  getDialogActionsSx,
+  getDialogContentSx,
+  getDialogSx,
+  getDialogTitleSx,
+  getModalDividerSx,
+  getModalInnerSurfaceSx,
+  getModalMutedTextSx,
+  getModalSectionSx,
+  secondaryDialogButtonSx
+} from './dialogTheme';
 
 interface TaskDetailsModalProps {
   open: boolean;
@@ -56,52 +70,65 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      sx={getDialogSx(darkMode)}
       PaperProps={{
-        className: darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900',
-        style: { 
-          overflowY: 'visible' // Para evitar problemas de scroll con el tema
+        style: {
+          overflowY: 'visible'
         }
       }}
     >
-      <DialogTitle 
-        className={`${darkMode ? 'text-gray-100 bg-gray-800' : 'text-gray-900 bg-white'}`}
-      >
+      <DialogTitle sx={getDialogTitleSx(darkMode)}>
         {task.title}
       </DialogTitle>
       
-      <DialogContent className={darkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-700'}>
+      <DialogContent sx={getDialogContentSx(darkMode)}>
         <div className="space-y-4 pt-2">
           {/* Información básica */}
-          <div className="flex items-center justify-between">
-            <TagBadge tag={task.tag} color={task.tagColor} />
-            {task.reference && (
-              <span className={`text-xs font-mono ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Ref: {task.reference}
-              </span>
-            )}
-          </div>
+
+          <Box sx={getModalSectionSx(darkMode)}>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <TagBadge tag={task.tag} color={task.tagColor} />
+              {task.reference && (
+                <span className={`rounded-full px-3 py-1 text-xs font-mono ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'}`}>
+                  Ref: {task.reference}
+                </span>
+              )}
+            </div>
+            <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
+              Resumen
+            </Typography>
+            <Typography sx={{ mt: 0.5, color: darkMode ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
+              {task.title}
+            </Typography>
+          </Box>
           
           {/* Descripción */}
           {task.description && (
-            <div className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
-              <h4 className="text-sm font-semibold">Descripción:</h4>
-              <p className="mt-1 text-sm">{task.description}</p>
-            </div>
+            <Box sx={getModalSectionSx(darkMode)}>
+              <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
+                Descripción
+              </Typography>
+              <Typography className="mt-1 whitespace-pre-wrap text-sm">
+                {task.description}
+              </Typography>
+            </Box>
           )}
           
           {/* Fechas */}
-          <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            <div>
-              <span className="font-semibold">Creado:</span> {formatDate(task.createdAt)}
+          <Box sx={{ ...getModalInnerSurfaceSx(darkMode), p: 2.25 }}>
+            <div className={`grid grid-cols-1 gap-2 text-xs md:grid-cols-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <div>
+                <span className="font-semibold">Creado:</span> {formatDate(task.createdAt)}
+              </div>
+              <div>
+                <span className="font-semibold">Actualizado:</span> {formatDate(task.updatedAt)}
+              </div>
             </div>
-            <div>
-              <span className="font-semibold">Actualizado:</span> {formatDate(task.updatedAt)}
-            </div>
-          </div>
+          </Box>
           
           {/* Componente de comentarios */}
-          <div className="mt-6">
-            <h4 className={`text-lg font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          <Box sx={getModalSectionSx(darkMode)}>
+            <h4 className={`mb-2 text-lg font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
               Bitácora de comentarios
             </h4>
             <TaskComments
@@ -111,15 +138,15 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               onEditComment={onEditComment}
               onDeleteComment={onDeleteComment}
             />
-          </div>
+          </Box>
         </div>
       </DialogContent>
       
-      <DialogActions className={darkMode ? 'bg-gray-800' : 'bg-white'}>
+      <DialogActions sx={getDialogActionsSx(darkMode)}>
         <Button 
           onClick={onClose} 
-          className={darkMode ? 'text-gray-300' : ''} 
           variant="outlined"
+          sx={secondaryDialogButtonSx}
         >
           Cerrar
         </Button>

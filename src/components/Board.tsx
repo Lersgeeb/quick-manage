@@ -29,6 +29,16 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import TextDecreaseIcon from '@mui/icons-material/TextDecrease';
 import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
 import Tooltip from '@mui/material/Tooltip';
+import {
+  getDialogActionsSx,
+  getDialogContentSx,
+  getDialogContentTextSx,
+  getDialogSx,
+  getDialogTextFieldSx,
+  getDialogTitleSx,
+  getPrimaryDialogButtonSx,
+  secondaryDialogButtonSx
+} from './dialogTheme';
 
 export const Board: React.FC = () => {
   const { darkMode } = useTheme();
@@ -367,10 +377,6 @@ export const Board: React.FC = () => {
   useEffect(() => {
     // This ensures minimization state is preserved between mode switches
     if (viewMode === 'presentation') {
-      // When switching to presentation mode, we need to ensure 
-      // the minimizedTasks set correctly reflects all tasks
-      const currentColumns = getCurrentColumns();
-      
       // Force a re-render to apply minimization states immediately
       setMinimizedTasks(prev => new Set([...prev]));
     }
@@ -568,15 +574,13 @@ export const Board: React.FC = () => {
       <Dialog 
         open={isAddingColumn} 
         onClose={() => setIsAddingColumn(false)}
-        PaperProps={{
-          className: darkMode ? 'bg-gray-800 text-gray-100' : ''
-        }}
+        sx={getDialogSx(darkMode)}
       >
-        <DialogTitle className={darkMode ? 'text-gray-100' : ''}>
+        <DialogTitle sx={getDialogTitleSx(darkMode)}>
           Nueva Columna {viewMode === 'presentation' ? 'de Presentación' : ''}
         </DialogTitle>
-        <DialogContent>
-          <DialogContentText className={darkMode ? 'text-gray-300' : ''}>
+        <DialogContent sx={getDialogContentSx(darkMode)}>
+          <DialogContentText sx={getDialogContentTextSx(darkMode)}>
             Ingresa un título para la nueva columna.
           </DialogContentText>
           <TextField
@@ -592,27 +596,14 @@ export const Board: React.FC = () => {
             onKeyPress={(e) => {
               if (e.key === 'Enter') handleAddColumn();
             }}
-            InputProps={{
-              className: darkMode ? 'text-gray-100' : ''
-            }}
-            InputLabelProps={{
-              className: darkMode ? 'text-gray-300' : ''
-            }}
-            sx={{
-              '.MuiOutlinedInput-notchedOutline': {
-                borderColor: darkMode ? 'rgba(255, 255, 255, 0.23)' : ''
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: darkMode ? 'rgba(255, 255, 255, 0.5)' : ''
-              }
-            }}
+            sx={getDialogTextFieldSx(darkMode)}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsAddingColumn(false)} className={darkMode ? 'text-gray-300' : ''}>
+        <DialogActions sx={getDialogActionsSx(darkMode)}>
+          <Button onClick={() => setIsAddingColumn(false)} variant="outlined" sx={secondaryDialogButtonSx}>
             Cancelar
           </Button>
-          <Button onClick={handleAddColumn} variant="contained" color="primary">
+          <Button onClick={handleAddColumn} variant="contained" color="primary" sx={getPrimaryDialogButtonSx(darkMode)}>
             Crear
           </Button>
         </DialogActions>

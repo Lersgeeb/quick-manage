@@ -19,6 +19,16 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { useTheme } from '../contexts/ThemeContext';
+import {
+  dangerDialogButtonSx,
+  getDialogActionsSx,
+  getDialogContentSx,
+  getDialogContentTextSx,
+  getDialogSx,
+  getDialogTitleSx,
+  secondaryDialogButtonSx
+} from './dialogTheme';
 
 interface ImportExportProps {
   board: Board;
@@ -26,6 +36,7 @@ interface ImportExportProps {
 }
 
 export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks }) => {
+  const { darkMode } = useTheme();
   const { exportBoard, exportTasksCsv, importBoard } = useImportExport();
   const { clearBoard, saveBoard, loadBoard } = useStorage();
   
@@ -178,16 +189,19 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
       <Dialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
+        sx={getDialogSx(darkMode)}
       >
-        <DialogTitle>Eliminar tablero</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
+        <DialogTitle sx={getDialogTitleSx(darkMode)}>Eliminar tablero</DialogTitle>
+        <DialogContent sx={getDialogContentSx(darkMode)}>
+          <DialogContentText sx={getDialogContentTextSx(darkMode)}>
             ¿Estás seguro de que quieres eliminar el tablero? Esta acción no se puede deshacer.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleClearBoard} color="error" variant="contained">
+        <DialogActions sx={getDialogActionsSx(darkMode)}>
+          <Button onClick={() => setIsDeleteDialogOpen(false)} variant="outlined" sx={secondaryDialogButtonSx}>
+            Cancelar
+          </Button>
+          <Button onClick={handleClearBoard} color="error" variant="contained" sx={dangerDialogButtonSx}>
             Eliminar
           </Button>
         </DialogActions>
