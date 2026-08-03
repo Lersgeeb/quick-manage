@@ -4,6 +4,7 @@ import { Column } from './Column';
 import { ImportExport } from './ImportExport';
 import { PriorityFilter } from './PriorityFilter';
 import { TagFilter } from './TagFilter';
+import { TaskSortControl } from './TaskSortControl';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { ThemeToggle } from './ThemeToggle';
@@ -11,7 +12,7 @@ import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task, TaskPriority, TASK_PRIORITY_OPTIONS } from '../types';
+import { Task, TaskPriority, TASK_PRIORITY_OPTIONS, TaskSortField, getTaskPriorityOption } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -69,6 +70,8 @@ export const Board: React.FC = () => {
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<TaskPriority | null>(null);
+  const [sortField, setSortField] = useState<TaskSortField>('manual');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
   const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
   const [allTasksMinimized, setAllTasksMinimized] = useState(false);
@@ -300,6 +303,36 @@ export const Board: React.FC = () => {
   const getFilteredTasks = (tasks: Task[]) => {
     return tasks.filter(taskMatchesFilters);
   };
+
+  const sortTasks = (tasks: Task[]) => {
+    const sortedTasks = tasks.slice();
+
+    if (sortField === 'manual') {
+      return sortedTasks.sort((firstTask, secondTask) => firstTask.order - secondTask.order);
+    }
+
+    const directionFactor = sortDirection === 'asc' ? 1 : -1;
+
+    return sortedTasks.sort((firstTask, secondTask) => {
+      if (sortField === 'priority') {
+        const priorityWeight = (task: Task) => TASK_PRIORITY_OPTIONS.findIndex(option => option.value === getTaskPriorityOption(task.priority).value);
+        const result = priorityWeight(firstTask) - priorityWeight(secondTask);
+        return result === 0 ? firstTask.order - secondTask.order : result * directionFactor;
+      }
+
+      const firstDate = new Date(firstTask[sortField]).getTime();
+      const secondDate = new Date(secondTask[sortField]).getTime();
+      const result = firstDate - secondDate;
+
+      if (result === 0) {
+        return firstTask.order - secondTask.order;
+      }
+
+      return result * directionFactor;
+    });
+  };
+
+  const isAutomaticSort = sortField !== 'manual';
   
   // Prepare columns for rendering based on view mode and filters
   const columnsToRender = useMemo(() => {
@@ -483,6 +516,12 @@ export const Board: React.FC = () => {
             selectedPriority={selectedPriority}
             onPrioritySelect={setSelectedPriority}
           />
+          <TaskSortControl
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSortFieldChange={setSortField}
+            onSortDirectionChange={setSortDirection}
+          />
         </div>
         
         <div className="flex items-center space-x-2">
@@ -546,7 +585,8 @@ export const Board: React.FC = () => {
                 <Column
                   key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
                   column={column}
-                  tasks={getFilteredTasks(column.tasks.sort((a, b) => a.order - b.order))}
+                  tasks={sortTasks(getFilteredTasks(column.tasks))}
+                  isTaskDragDisabled={isAutomaticSort}
                   onAddTask={() => handleOpenAddTaskModal(column.id)}
                   onEditTask={handleOpenEditTaskModal}
                   onDeleteTask={deleteTask}

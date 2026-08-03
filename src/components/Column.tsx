@@ -16,6 +16,7 @@ import ListItemText from '@mui/material/ListItemText';
 interface ColumnProps {
   column: ColumnType;
   tasks: TaskType[];
+  isTaskDragDisabled?: boolean;
   onAddTask: (columnId: string) => void;
   onEditTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
@@ -35,6 +36,7 @@ interface ColumnProps {
 export const Column: React.FC<ColumnProps> = ({ 
   column, 
   tasks, 
+  isTaskDragDisabled = false,
   onAddTask, 
   onEditTask, 
   onDeleteTask,
@@ -165,6 +167,7 @@ export const Column: React.FC<ColumnProps> = ({
                 key={task.id}
                 task={task}
                 index={index}
+                isDragDisabled={isTaskDragDisabled}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}

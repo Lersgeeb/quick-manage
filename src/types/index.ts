@@ -20,6 +20,15 @@ export const getTaskPriorityOption = (priority?: TaskPriority | null) => {
   return TASK_PRIORITY_OPTIONS.find(option => option.value === priority) || TASK_PRIORITY_OPTIONS[0];
 };
 
+export type TaskSortField = 'manual' | 'priority' | 'createdAt' | 'updatedAt';
+
+export const TASK_SORT_OPTIONS: Array<{ value: TaskSortField; label: string }> = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'priority', label: 'Prioridad' },
+  { value: 'createdAt', label: 'Fecha de creacion' },
+  { value: 'updatedAt', label: 'Fecha de actualizacion' }
+];
+
 export interface Task {
   id: string;
   title: string;
