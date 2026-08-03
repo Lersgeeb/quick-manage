@@ -1,5 +1,5 @@
 import { saveAs } from 'file-saver';
-import { Board, Comment, Task } from '../types';
+import { Board, Comment, Task, getTaskPriorityOption } from '../types';
 
 const escapeCsvValue = (value: string) => {
   const normalizedValue = value.replace(/\r\n/g, '\n');
@@ -47,6 +47,7 @@ export const useImportExport = () => {
   const exportTasksCsv = (tasks: Task[], fileNamePrefix = 'quickmanage-tasks') => {
     const headers = [
       'Tag',
+      'Priority',
       'Name',
       'Reference',
       'Creation Date',
@@ -57,11 +58,13 @@ export const useImportExport = () => {
 
     const rows = tasks.map(task => {
       const tag = task.tag || (task as any).client || '';
+      const priority = getTaskPriorityOption(task.priority).label;
       const reference = task.reference || '';
       const latestComments = getLatestCommentsText(task.comments || []);
 
       return [
         tag,
+        priority,
         task.title,
         reference,
         formatCsvDate(task.createdAt),

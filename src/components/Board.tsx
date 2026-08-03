@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { Column } from './Column';
 import { ImportExport } from './ImportExport';
+import { PriorityFilter } from './PriorityFilter';
 import { TagFilter } from './TagFilter';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
@@ -10,7 +11,7 @@ import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task } from '../types';
+import { Task, TaskPriority, TASK_PRIORITY_OPTIONS } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -67,6 +68,7 @@ export const Board: React.FC = () => {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedPriority, setSelectedPriority] = useState<TaskPriority | null>(null);
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
   const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
   const [allTasksMinimized, setAllTasksMinimized] = useState(false);
@@ -278,20 +280,25 @@ export const Board: React.FC = () => {
   }, [board]);
   
   // Filter tasks by selected tag and visibility
+  const taskMatchesFilters = (task: Task) => {
+    if (!showHiddenTasks && task.hidden) {
+      return false;
+    }
+
+    const taskTag = task.tag || (task as any).client || '';
+    if (selectedTag && taskTag !== selectedTag) {
+      return false;
+    }
+
+    if (selectedPriority && task.priority !== selectedPriority) {
+      return false;
+    }
+
+    return true;
+  };
+
   const getFilteredTasks = (tasks: Task[]) => {
-    return tasks.filter(task => {
-      // Filter by visibility
-      if (!showHiddenTasks && task.hidden) {
-        return false;
-      }
-      
-      // Filter by tag
-      if (!selectedTag) return true;
-      
-      // Handle both new and legacy properties
-      const taskTag = task.tag || (task as any).client || '';
-      return taskTag === selectedTag;
-    });
+    return tasks.filter(taskMatchesFilters);
   };
   
   // Prepare columns for rendering based on view mode and filters
@@ -303,19 +310,7 @@ export const Board: React.FC = () => {
       const allFilteredTasks: Task[] = [];
       
       board.columns.forEach(normalCol => {
-        const tasksForColumn = normalCol.tasks.filter(task => {
-          // Apply visibility filter
-          if (!showHiddenTasks && task.hidden) {
-            return false;
-          }
-          
-          // Apply tag filter
-          if (selectedTag) {
-            const taskTag = task.tag || (task as any).client || '';
-            return taskTag === selectedTag;
-          }
-          return true;
-        });
+        const tasksForColumn = normalCol.tasks.filter(taskMatchesFilters);
         
         allFilteredTasks.push(...tasksForColumn);
       });
@@ -349,7 +344,7 @@ export const Board: React.FC = () => {
     
     // For normal mode, just return the columns
     return currentColumns;
-  }, [board, viewMode, selectedTag, getCurrentColumns, showHiddenTasks]);
+  }, [board, viewMode, selectedTag, selectedPriority, getCurrentColumns, showHiddenTasks]);
 
   const filteredTasksForExport = useMemo(() => {
     return columnsToRender
@@ -358,7 +353,22 @@ export const Board: React.FC = () => {
       .flatMap(column => getFilteredTasks(
         column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order)
       ));
-  }, [columnsToRender, showHiddenTasks, selectedTag]);
+  }, [columnsToRender, showHiddenTasks, selectedTag, selectedPriority]);
+
+  const visiblePriorityCounts = useMemo(() => {
+    const uniqueVisibleTasks = new Map<string, Task>();
+
+    columnsToRender.forEach(column => {
+      getFilteredTasks(column.tasks).forEach(task => {
+        uniqueVisibleTasks.set(task.id, task);
+      });
+    });
+
+    return TASK_PRIORITY_OPTIONS.map(option => ({
+      ...option,
+      count: Array.from(uniqueVisibleTasks.values()).filter(task => task.priority === option.value).length
+    }));
+  }, [columnsToRender, showHiddenTasks, selectedTag, selectedPriority]);
 
   // Toggle minimization for a single task
   const toggleTaskMinimization = (taskId: string) => {
@@ -439,7 +449,7 @@ export const Board: React.FC = () => {
   }
 
   return (
-    <div className="p-4 h-full dark:bg-gray-900 dark:text-white transition-colors duration-200">
+    <div className="flex h-full min-h-0 flex-col p-4 dark:bg-gray-900 dark:text-white transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
           QuickManage {viewMode === 'presentation' && '- Modo Presentación'}
@@ -460,8 +470,8 @@ export const Board: React.FC = () => {
       </div>
 
       {/* Filters row */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {uniqueTags.length > 0 && (
             <TagFilter
               tags={uniqueTags}
@@ -469,6 +479,10 @@ export const Board: React.FC = () => {
               onTagSelect={setSelectedTag}
             />
           )}
+          <PriorityFilter
+            selectedPriority={selectedPriority}
+            onPrioritySelect={setSelectedPriority}
+          />
         </div>
         
         <div className="flex items-center space-x-2">
@@ -520,36 +534,53 @@ export const Board: React.FC = () => {
         </div>
       </div>
 
-      <DragDropContext 
-        onDragEnd={handleDragEnd}
-        onDragStart={handleDragStart}
-      >
-        <div className="flex gap-0 overflow-x-auto pb-4 h-[calc(100vh-180px)] w-full custom-scrollbar">
-          {columnsToRender
-            .sort((a, b) => a.order - b.order)
-            .map((column) => (
-              <Column
-                key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
-                column={column}
-                tasks={getFilteredTasks(column.tasks.sort((a, b) => a.order - b.order))}
-                onAddTask={() => handleOpenAddTaskModal(column.id)}
-                onEditTask={handleOpenEditTaskModal}
-                onDeleteTask={deleteTask}
-                onViewDetails={handleOpenDetailsModal}
-                onUpdateColumn={updateColumn}
-                onDeleteColumn={deleteColumn}
-                onMoveLeft={moveColumnLeft}
-                onMoveRight={moveColumnRight}
-                onToggleTaskVisibility={handleToggleTaskVisibility}
-                onToggleMinimize={toggleTaskMinimization}
-                minimizedTasks={minimizedTasks}
-                viewMode={viewMode}
-                showHiddenTasks={showHiddenTasks}
-                smallText={smallText}
-              />
-            ))}
-        </div>
-      </DragDropContext>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <DragDropContext 
+          onDragEnd={handleDragEnd}
+          onDragStart={handleDragStart}
+        >
+          <div className="flex h-full w-full gap-0 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar">
+            {columnsToRender
+              .sort((a, b) => a.order - b.order)
+              .map((column) => (
+                <Column
+                  key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
+                  column={column}
+                  tasks={getFilteredTasks(column.tasks.sort((a, b) => a.order - b.order))}
+                  onAddTask={() => handleOpenAddTaskModal(column.id)}
+                  onEditTask={handleOpenEditTaskModal}
+                  onDeleteTask={deleteTask}
+                  onViewDetails={handleOpenDetailsModal}
+                  onUpdateColumn={updateColumn}
+                  onDeleteColumn={deleteColumn}
+                  onMoveLeft={moveColumnLeft}
+                  onMoveRight={moveColumnRight}
+                  onToggleTaskVisibility={handleToggleTaskVisibility}
+                  onToggleMinimize={toggleTaskMinimization}
+                  minimizedTasks={minimizedTasks}
+                  viewMode={viewMode}
+                  showHiddenTasks={showHiddenTasks}
+                  smallText={smallText}
+                />
+              ))}
+          </div>
+        </DragDropContext>
+      </div>
+
+      <div className={`mt-2 shrink-0 grid grid-cols-2 gap-3 rounded-2xl border text-sm md:grid-cols-4 ${darkMode ? 'border-slate-700 bg-slate-800/70' : 'border-slate-200 bg-white/90'}`}>
+        {visiblePriorityCounts.map((priority) => (
+          <div
+            key={priority.value}
+            className={`flex items-center justify-between rounded-xl border px-3 py-2 ${darkMode ? 'border-slate-700 bg-slate-900/60 text-slate-100' : 'border-slate-200 bg-slate-50 text-slate-800'}`}
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: priority.color }} />
+              <span className="font-medium">{priority.label}</span>
+            </div>
+            <div className="text-sm font-bold leading-none">{priority.count}</div>
+          </div>
+        ))}
+      </div>
 
       {/* Modal para crear/editar tareas */}
       <TaskFormModal

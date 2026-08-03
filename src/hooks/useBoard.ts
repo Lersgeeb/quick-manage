@@ -1,7 +1,36 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Comment, BoardViewMode } from '../types';
+import { Board, Column, Task, Comment, BoardViewMode, DEFAULT_TASK_PRIORITY, TaskPriority } from '../types';
 import { useStorage } from './useStorage';
+
+const isTaskPriority = (value: unknown): value is TaskPriority => {
+  return value === 'low' || value === 'medium' || value === 'high' || value === 'critical';
+};
+
+const normalizeTask = (task: Task): Task => {
+  const taskData = task as Task & { client?: string; clientColor?: string; priority?: unknown };
+
+  return {
+    ...task,
+    tag: taskData.tag || taskData.client || '',
+    tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
+    priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
+    reference: taskData.reference || ''
+  };
+};
+
+const normalizeColumns = (columns: Column[] = []): Column[] => {
+  return columns.map(column => ({
+    ...column,
+    tasks: column.tasks.map(normalizeTask)
+  }));
+};
+
+const normalizeBoard = (board: Board): Board => ({
+  ...board,
+  columns: normalizeColumns(board.columns),
+  presentationColumns: board.presentationColumns ? normalizeColumns(board.presentationColumns) : undefined
+});
 
 export const useBoard = () => {
   const [board, setBoard] = useState<Board>({ columns: [] });
@@ -13,7 +42,7 @@ export const useBoard = () => {
     const savedViewMode = loadViewMode();
     
     if (loadedBoard) {
-      setBoard(loadedBoard);
+      setBoard(normalizeBoard(loadedBoard));
     } else {
       // Initialize with default columns if no saved data
       const defaultColumns: Column[] = [
@@ -158,6 +187,7 @@ export const useBoard = () => {
       // Ensure backwards compatibility
       tag: taskData.tag || taskData.client || '',
       tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
+      priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
       reference: taskData.reference || '',
       id: uuidv4(),
       columnId,

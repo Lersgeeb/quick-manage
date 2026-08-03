@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Task } from '../types';
+import { Task, getTaskPriorityOption } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { TagBadge } from './TagBadge';
 import { TaskComments } from './TaskComments';
@@ -43,6 +43,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const { darkMode } = useTheme();
   
   if (!task) return null;
+
+  const priority = getTaskPriorityOption(task.priority);
   
   const formatDate = (dateString: string) => {
     try {
@@ -97,9 +99,12 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
               Resumen
             </Typography>
-            <Typography sx={{ mt: 0.5, color: darkMode ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
-              {task.title}
-            </Typography>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <Typography sx={{ color: darkMode ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
+                {task.title}
+              </Typography>
+              <TagBadge tag={priority.label} color={priority.color} />
+            </div>
           </Box>
           
           {/* Descripción */}

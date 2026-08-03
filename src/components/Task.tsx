@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Task as TaskType, BoardViewMode } from '../types';
+import { Task as TaskType, BoardViewMode, getTaskPriorityOption } from '../types';
 import { TagBadge } from './TagBadge';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -48,6 +48,7 @@ export const Task: React.FC<TaskProps> = ({
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
   const referenceToShow = task.reference || '';
   const isHidden = task.hidden || false;
+  const priority = getTaskPriorityOption(task.priority);
   
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -77,7 +78,9 @@ export const Task: React.FC<TaskProps> = ({
           onDoubleClick={() => onViewDetails(task.id)}
           style={{
             ...provided.draggableProps.style,
-            transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'translate(0px, 0px)'
+            transform: snapshot.isDragging ? provided.draggableProps.style?.transform : 'translate(0px, 0px)',
+            borderLeftWidth: 5,
+            borderLeftColor: priority.color
           }}
           className={`mb-2 bg-white dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 
             ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 rotate-1' : ''}

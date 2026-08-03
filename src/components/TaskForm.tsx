@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Task } from '../types';
+import { DEFAULT_TASK_PRIORITY, TASK_PRIORITY_OPTIONS, Task } from '../types';
 
 interface TaskFormProps {
   task?: Task;
@@ -25,6 +25,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
   const [description, setDescription] = useState(task?.description || '');
   const [tag, setTag] = useState(task?.tag || '');
   const [tagColor, setTagColor] = useState(task?.tagColor || DEFAULT_COLORS[0]);
+  const [priority, setPriority] = useState(task?.priority || DEFAULT_TASK_PRIORITY);
   const [reference, setReference] = useState(task?.reference || '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,6 +35,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
       description,
       tag,
       tagColor,
+      priority,
       reference
     });
   };
@@ -93,6 +95,36 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
           onChange={(e) => setReference(e.target.value)}
           placeholder="Ej. TASK-123"
         />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
+          Prioridad
+        </label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {TASK_PRIORITY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                priority === option.value
+                  ? 'border-slate-900 text-slate-900 ring-2 ring-offset-2 dark:border-white dark:text-white dark:ring-offset-slate-900'
+                  : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500'
+              }`}
+              style={{
+                backgroundColor: `${option.color}22`,
+                boxShadow: priority === option.value ? `inset 0 0 0 1px ${option.color}` : undefined
+              }}
+              onClick={() => setPriority(option.value)}
+            >
+              <span
+                className="mb-1 block h-2 w-full rounded-full"
+                style={{ backgroundColor: option.color }}
+              />
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mb-4">
