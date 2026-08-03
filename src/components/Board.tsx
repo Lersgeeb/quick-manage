@@ -332,8 +332,6 @@ export const Board: React.FC = () => {
     });
   };
 
-  const isAutomaticSort = sortField !== 'manual';
-  
   // Prepare columns for rendering based on view mode and filters
   const columnsToRender = useMemo(() => {
     const currentColumns = getCurrentColumns();
@@ -586,7 +584,6 @@ export const Board: React.FC = () => {
                   key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
                   column={column}
                   tasks={sortTasks(getFilteredTasks(column.tasks))}
-                  isTaskDragDisabled={isAutomaticSort}
                   onAddTask={() => handleOpenAddTaskModal(column.id)}
                   onEditTask={handleOpenEditTaskModal}
                   onDeleteTask={deleteTask}

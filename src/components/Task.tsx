@@ -19,7 +19,6 @@ import ListItemText from '@mui/material/ListItemText';
 interface TaskProps {
   task: TaskType;
   index: number;
-  isDragDisabled?: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onViewDetails: (id: string) => void;
@@ -34,7 +33,6 @@ interface TaskProps {
 export const Task: React.FC<TaskProps> = ({ 
   task, 
   index, 
-  isDragDisabled = false,
   onEdit, 
   onDelete, 
   onViewDetails,
@@ -71,7 +69,7 @@ export const Task: React.FC<TaskProps> = ({
   };
 
   return (
-    <Draggable draggableId={task.id} index={index} isDragDisabled={isDragDisabled}>
+    <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -88,7 +86,7 @@ export const Task: React.FC<TaskProps> = ({
             ${snapshot.isDragging ? 'opacity-80 shadow-lg bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 rotate-1' : ''}
             ${isHidden && showHiddenTasks ? 'opacity-50 border-dashed' : ''}
             p-3 py-3
-            transition-all duration-200 hover:shadow-md ${isDragDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
+            transition-all duration-200 hover:shadow-md cursor-grab active:cursor-grabbing`}
         >
           {/* When minimized, use a single row with all elements aligned */}
           {isMinimized ? (
