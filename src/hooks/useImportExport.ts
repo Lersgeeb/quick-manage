@@ -44,8 +44,10 @@ export const useImportExport = () => {
     saveAs(blob, `quickmanage-board-${new Date().toISOString().slice(0, 10)}.json`);
   };
 
-  const exportTasksCsv = (tasks: Task[], fileNamePrefix = 'quickmanage-tasks') => {
+  const exportTasksCsv = (board: Board, tasks: Task[], fileNamePrefix = 'quickmanage-tasks') => {
+    const columnTitlesById = new Map(board.columns.map(column => [column.id, column.title]));
     const headers = [
+      'Status',
       'Tag',
       'Priority',
       'Name',
@@ -57,12 +59,14 @@ export const useImportExport = () => {
     ];
 
     const rows = tasks.map(task => {
+      const status = columnTitlesById.get(task.columnId) || '';
       const tag = task.tag || (task as any).client || '';
       const priority = getTaskPriorityOption(task.priority).label;
       const reference = task.reference || '';
       const latestComments = getLatestCommentsText(task.comments || []);
 
       return [
+        status,
         tag,
         priority,
         task.title,

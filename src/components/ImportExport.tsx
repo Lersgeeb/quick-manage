@@ -69,13 +69,14 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
   const handleExportCsv = () => {
     const latestBoard = loadBoard() || board;
     const allTasks = latestBoard.columns.flatMap(column => column.tasks);
-    exportTasksCsv(allTasks);
+    exportTasksCsv(latestBoard, allTasks);
     handleCloseMenu();
     showAlert('CSV exportado exitosamente', 'success');
   };
 
   const handleExportFilteredCsv = () => {
-    exportTasksCsv(filteredTasks, 'quickmanage-tasks-filtered');
+    const latestBoard = loadBoard() || board;
+    exportTasksCsv(latestBoard, filteredTasks, 'quickmanage-tasks-filtered');
     handleCloseMenu();
     showAlert('CSV filtrado exportado exitosamente', 'success');
   };
