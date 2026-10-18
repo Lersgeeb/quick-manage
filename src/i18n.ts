@@ -177,6 +177,9 @@ const translations: Record<Language, Record<string, TranslationValue>> = {
     'presentation.noCommentsShort': 'No comments',
     'presentation.noActivities': 'No activities to display with the current filters.',
     'presentation.details': 'Details',
+    'presentation.columnsTitle': 'Workflow columns',
+    'presentation.columnsCaption': 'Choose a column to focus on its activities or review them all at once.',
+    'presentation.allColumns': 'All columns',
 
     'boardData.todo': 'To do',
     'boardData.inProgress': 'In progress',
@@ -377,6 +380,9 @@ const translations: Record<Language, Record<string, TranslationValue>> = {
     'presentation.noCommentsShort': 'Sin comentarios',
     'presentation.noActivities': 'Sin actividades para mostrar con los filtros actuales.',
     'presentation.details': 'Detalles',
+    'presentation.columnsTitle': 'Columnas del flujo',
+    'presentation.columnsCaption': 'Elige una columna para enfocarte en sus actividades o revisa todas a la vez.',
+    'presentation.allColumns': 'Todas las columnas',
 
     'boardData.todo': 'Por hacer',
     'boardData.inProgress': 'En progreso',

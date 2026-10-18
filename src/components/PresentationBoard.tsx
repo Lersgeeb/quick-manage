@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import PlaylistAddCheckCircleOutlinedIcon from '@mui/icons-material/PlaylistAddCheckCircleOutlined';
@@ -21,6 +21,17 @@ interface PresentationBoardProps {
   onManageNextStep: (taskId: string) => void;
   onEditTask: (taskId: string) => void;
   onAddTask: (columnId: string) => void;
+}
+
+interface PresentationTaskCardProps {
+  task: Task;
+  darkMode: boolean;
+  textDisplayMode: TaskTextDisplayMode;
+  smallText: boolean;
+  onViewDetails: (taskId: string) => void;
+  onManageNextStep: (taskId: string) => void;
+  onEditTask: (taskId: string) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const getLatestComment = (comments: Comment[] = []) => {
@@ -64,6 +75,90 @@ const getDisplayText = (task: Task, textDisplayMode: TaskTextDisplayMode) => {
   return task.description || '';
 };
 
+const PresentationTaskCard: React.FC<PresentationTaskCardProps> = ({
+  task,
+  darkMode,
+  textDisplayMode,
+  smallText,
+  onViewDetails,
+  onManageNextStep,
+  onEditTask,
+  t
+}) => {
+  const priority = getTaskPriorityOption(task.priority);
+  const latestComment = getLatestComment(task.comments || []);
+  const displayText = getDisplayText(task, textDisplayMode);
+
+  return (
+    <div
+      className={`rounded-2xl border p-4 shadow-sm transition ${darkMode ? 'border-slate-700 bg-slate-900/60 hover:border-slate-500' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className={`font-semibold ${smallText ? 'text-sm' : 'text-base'}`}>{task.title}</h4>
+            <span className="rounded-full px-2 py-1 text-[11px] font-semibold" style={{ backgroundColor: `${priority.color}20`, color: priority.color }}>
+              {t(priority.label)}
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {task.tag && <TagBadge tag={task.tag} color={task.tagColor} />}
+            {task.reference && (
+              <span className={`rounded-full px-2 py-1 text-[11px] font-mono ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'}`}>
+                {task.reference}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Tooltip title={t('presentation.details')}>
+            <IconButton size="small" onClick={() => onViewDetails(task.id)} sx={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
+              <RemoveRedEyeOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('presentation.manageNextStep')}>
+            <IconButton size="small" onClick={() => onManageNextStep(task.id)} sx={{ color: darkMode ? '#86efac' : '#059669' }}>
+              <PlaylistAddCheckCircleOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('task.edit')}>
+            <IconButton size="small" onClick={() => onEditTask(task.id)} sx={{ color: darkMode ? '#93c5fd' : '#2563eb' }}>
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </div>
+      </div>
+
+      {displayText && (
+        <div className={`mt-4 rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-700'}`}>
+          <div className={`mb-1 text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            {textDisplayMode === 'description' ? t('presentation.displayDescription') : textDisplayMode === 'nextStep' ? t('presentation.displayNextStep') : t('presentation.displayLastComment')}
+          </div>
+          <p className={`line-clamp-3 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'}`}>
+            {displayText}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-2 md:grid-cols-2">
+        <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
+          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayNextStep')}</div>
+          <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${task.nextStep?.trim() ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
+            {task.nextStep?.trim() || t('presentation.notDefined')}
+          </p>
+        </div>
+        <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
+          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayLastComment')}</div>
+          <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${latestComment ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
+            {latestComment || t('presentation.noCommentsShort')}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const PresentationBoard: React.FC<PresentationBoardProps> = ({
   columns,
   darkMode,
@@ -75,10 +170,21 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
   onAddTask
 }) => {
   const { t } = useLanguage();
+  const [selectedColumnId, setSelectedColumnId] = useState<'all' | string>('all');
   const taskEntries = useMemo(
     () => columns.flatMap(column => column.tasks.map(task => ({ column, task }))),
     [columns]
   );
+
+  useEffect(() => {
+    if (selectedColumnId === 'all') {
+      return;
+    }
+
+    if (!columns.some((column) => column.id === selectedColumnId)) {
+      setSelectedColumnId('all');
+    }
+  }, [columns, selectedColumnId]);
 
   const totalTasks = taskEntries.length;
   const completedTasks = taskEntries.filter(({ column }) => isCompletedColumn(column.title)).length;
@@ -142,6 +248,15 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
       accent: darkMode ? 'from-amber-500/25 to-orange-400/10' : 'from-amber-100 to-orange-50'
     }
   ];
+
+  const visibleColumns = useMemo(() => {
+    if (selectedColumnId === 'all') {
+      return columns;
+    }
+
+    return columns.filter((column) => column.id === selectedColumnId);
+  }, [columns, selectedColumnId]);
+  const isSingleColumnFocus = selectedColumnId !== 'all' && visibleColumns.length === 1;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-2 pr-1 custom-scrollbar">
@@ -266,114 +381,102 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
-        {columns.map((column) => {
-          const columnTaskCount = column.tasks.length;
-          return (
-            <div
-              key={column.id}
-              className={`flex min-h-[260px] flex-col rounded-3xl border ${darkMode ? 'border-slate-700 bg-slate-800/60' : 'border-slate-200 bg-white'}`}
+      <section className={`rounded-3xl border p-4 ${darkMode ? 'border-slate-700 bg-slate-800/60' : 'border-slate-200 bg-white'}`}>
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">{t('presentation.columnsTitle')}</h3>
+            <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {t('presentation.columnsCaption')}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedColumnId('all')}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                selectedColumnId === 'all'
+                  ? darkMode
+                    ? 'border-sky-400 bg-sky-500/20 text-sky-100'
+                    : 'border-sky-500 bg-sky-50 text-sky-700'
+                  : darkMode
+                    ? 'border-slate-600 bg-slate-900/60 text-slate-300 hover:border-slate-500'
+                    : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400'
+              }`}
             >
-              <div className={`flex items-center justify-between gap-3 border-b px-4 py-4 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
-                <div>
-                  <div className="text-lg font-semibold">{column.title}</div>
-                  <div className={`mt-1 text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {t('presentation.activityCount', { count: columnTaskCount })}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onAddTask(column.id)}
-                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${darkMode ? 'bg-slate-900/70 text-slate-100 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-                >
-                  {t('presentation.addTask')}
-                </button>
-              </div>
+              {t('presentation.allColumns')}
+            </button>
+            {columns.map((column) => (
+              <button
+                key={column.id}
+                type="button"
+                onClick={() => setSelectedColumnId(column.id)}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                  selectedColumnId === column.id
+                    ? darkMode
+                      ? 'border-sky-400 bg-sky-500/20 text-sky-100'
+                      : 'border-sky-500 bg-sky-50 text-sky-700'
+                    : darkMode
+                      ? 'border-slate-600 bg-slate-900/60 text-slate-300 hover:border-slate-500'
+                      : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400'
+                }`}
+              >
+                {column.title}
+              </button>
+            ))}
+          </div>
+        </div>
 
-              <div className="flex-1 space-y-3 overflow-y-auto p-4 custom-scrollbar">
-                {column.tasks.length > 0 ? column.tasks.map((task) => {
-                  const priority = getTaskPriorityOption(task.priority);
-                  const latestComment = getLatestComment(task.comments || []);
-                  const displayText = getDisplayText(task, textDisplayMode);
-
-                  return (
-                    <div
-                      key={task.id}
-                      className={`rounded-2xl border p-4 shadow-sm transition ${darkMode ? 'border-slate-700 bg-slate-900/60 hover:border-slate-500' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className={`font-semibold ${smallText ? 'text-sm' : 'text-base'}`}>{task.title}</h4>
-                            <span className="rounded-full px-2 py-1 text-[11px] font-semibold" style={{ backgroundColor: `${priority.color}20`, color: priority.color }}>
-                              {t(priority.label)}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex flex-wrap items-center gap-2">
-                            {task.tag && <TagBadge tag={task.tag} color={task.tagColor} />}
-                            {task.reference && (
-                              <span className={`rounded-full px-2 py-1 text-[11px] font-mono ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'}`}>
-                                {task.reference}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <Tooltip title={t('presentation.details')}>
-                            <IconButton size="small" onClick={() => onViewDetails(task.id)} sx={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
-                              <RemoveRedEyeOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('presentation.manageNextStep')}>
-                            <IconButton size="small" onClick={() => onManageNextStep(task.id)} sx={{ color: darkMode ? '#86efac' : '#059669' }}>
-                              <PlaylistAddCheckCircleOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('task.edit')}>
-                            <IconButton size="small" onClick={() => onEditTask(task.id)} sx={{ color: darkMode ? '#93c5fd' : '#2563eb' }}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </div>
-                      </div>
-
-                      {displayText && (
-                        <div className={`mt-4 rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-700'}`}>
-                          <div className={`mb-1 text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            {textDisplayMode === 'description' ? t('presentation.displayDescription') : textDisplayMode === 'nextStep' ? t('presentation.displayNextStep') : t('presentation.displayLastComment')}
-                          </div>
-                          <p className={`line-clamp-3 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'}`}>
-                            {displayText}
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="mt-4 grid gap-2 md:grid-cols-2">
-                        <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
-                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayNextStep')}</div>
-                          <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${task.nextStep?.trim() ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
-                            {task.nextStep?.trim() || t('presentation.notDefined')}
-                          </p>
-                        </div>
-                        <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
-                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayLastComment')}</div>
-                          <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${latestComment ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
-                            {latestComment || t('presentation.noCommentsShort')}
-                          </p>
-                        </div>
-                      </div>
+        <div className={isSingleColumnFocus ? '' : 'grid gap-4 xl:grid-cols-3'}>
+          {visibleColumns.map((column) => {
+            const columnTaskCount = column.tasks.length;
+            return (
+              <div
+                key={column.id}
+                className={`flex min-h-[260px] flex-col rounded-3xl border ${darkMode ? 'border-slate-700 bg-slate-900/45' : 'border-slate-200 bg-slate-50/80'}`}
+              >
+                <div className={`flex items-center justify-between gap-3 border-b px-4 py-4 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <div>
+                    <div className="text-lg font-semibold">{column.title}</div>
+                    <div className={`mt-1 text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {t('presentation.activityCount', { count: columnTaskCount })}
                     </div>
-                  );
-                }) : (
-                  <div className={`rounded-2xl border border-dashed p-4 text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
-                    {t('presentation.noActivities')}
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => onAddTask(column.id)}
+                    className={`rounded-full px-3 py-1 text-sm font-medium transition ${darkMode ? 'bg-slate-900/70 text-slate-100 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                  >
+                    {t('presentation.addTask')}
+                  </button>
+                </div>
+
+                <div className={`flex-1 p-4 ${isSingleColumnFocus ? '' : 'overflow-y-auto custom-scrollbar'}`}>
+                  {column.tasks.length > 0 ? (
+                    <div className={isSingleColumnFocus ? 'grid gap-4 md:grid-cols-2 2xl:grid-cols-3' : 'space-y-3'}>
+                      {column.tasks.map((task) => (
+                        <PresentationTaskCard
+                          key={task.id}
+                          task={task}
+                          darkMode={darkMode}
+                          textDisplayMode={textDisplayMode}
+                          smallText={smallText}
+                          onViewDetails={onViewDetails}
+                          onManageNextStep={onManageNextStep}
+                          onEditTask={onEditTask}
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`rounded-2xl border border-dashed p-4 text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
+                      {t('presentation.noActivities')}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </section>
     </div>
   );
