@@ -12,7 +12,7 @@ import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task, TaskPriority, TASK_PRIORITY_OPTIONS, TaskSortField, getTaskPriorityOption } from '../types';
+import { Task, TaskPriority, TaskSortField, getTaskPriorityOption } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -386,21 +386,6 @@ export const Board: React.FC = () => {
       ));
   }, [columnsToRender, showHiddenTasks, selectedTag, selectedPriority]);
 
-  const visiblePriorityCounts = useMemo(() => {
-    const uniqueVisibleTasks = new Map<string, Task>();
-
-    columnsToRender.forEach(column => {
-      getFilteredTasks(column.tasks).forEach(task => {
-        uniqueVisibleTasks.set(task.id, task);
-      });
-    });
-
-    return TASK_PRIORITY_OPTIONS.map(option => ({
-      ...option,
-      count: Array.from(uniqueVisibleTasks.values()).filter(task => task.priority === option.value).length
-    }));
-  }, [columnsToRender, showHiddenTasks, selectedTag, selectedPriority]);
-
   // Toggle minimization for a single task
   const toggleTaskMinimization = (taskId: string) => {
     setMinimizedTasks(prev => {
@@ -602,21 +587,6 @@ export const Board: React.FC = () => {
               ))}
           </div>
         </DragDropContext>
-      </div>
-
-      <div className={`mt-2 shrink-0 grid grid-cols-2 gap-3 rounded-2xl border text-sm md:grid-cols-4 ${darkMode ? 'border-slate-700 bg-slate-800/70' : 'border-slate-200 bg-white/90'}`}>
-        {visiblePriorityCounts.map((priority) => (
-          <div
-            key={priority.value}
-            className={`flex items-center justify-between rounded-xl border px-3 py-2 ${darkMode ? 'border-slate-700 bg-slate-900/60 text-slate-100' : 'border-slate-200 bg-slate-50 text-slate-800'}`}
-          >
-            <div className="mb-1 flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: priority.color }} />
-              <span className="font-medium">{priority.label}</span>
-            </div>
-            <div className="text-sm font-bold leading-none">{priority.count}</div>
-          </div>
-        ))}
       </div>
 
       {/* Modal para crear/editar tareas */}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
-import { Column as ColumnType, Task as TaskType, BoardViewMode } from '../types';
+import { Column as ColumnType, Task as TaskType, BoardViewMode, TASK_PRIORITY_OPTIONS } from '../types';
 import { Task } from './Task';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -53,6 +53,14 @@ export const Column: React.FC<ColumnProps> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const priorityCounts = useMemo(
+    () =>
+      TASK_PRIORITY_OPTIONS.map(option => ({
+        ...option,
+        count: tasks.filter(task => task.priority === option.value).length
+      })),
+    [tasks]
+  );
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -187,6 +195,20 @@ export const Column: React.FC<ColumnProps> = ({
       >
         <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
       </button>
+
+      <div className="mt-2 grid grid-cols-4 gap-2">
+        {priorityCounts.map((priority) => (
+          <div
+            key={priority.value}
+            className="flex items-center justify-center gap-2 rounded-md bg-white px-2 py-1 text-sm font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100"
+            title={`${priority.count} tareas con prioridad ${priority.label.toLowerCase()}`}
+            aria-label={`${priority.count} tareas con prioridad ${priority.label.toLowerCase()}`}
+          >
+            <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: priority.color }} />
+            <span>{priority.count}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
