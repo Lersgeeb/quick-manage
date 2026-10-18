@@ -13,6 +13,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
+import Tooltip from '@mui/material/Tooltip';
 
 interface ColumnProps {
   column: ColumnType;
@@ -130,6 +131,17 @@ export const Column: React.FC<ColumnProps> = ({
               <div className='bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded-xl'>{tasks.length}</div>
             </div>
             <div className="flex items-center space-x-1">
+              {!isArchiveColumn && (
+                <Tooltip title="Añadir tarea">
+                  <button
+                    onClick={() => onAddTask(column.id)}
+                    className="p-1 text-blue-500 hover:text-blue-600 dark:text-blue-300 dark:hover:text-blue-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                    title="Añadir tarea"
+                  >
+                    <AddIcon fontSize="small" />
+                  </button>
+                </Tooltip>
+              )}
               <button 
                 onClick={() => onMoveLeft(column.id)}
                 className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -209,15 +221,6 @@ export const Column: React.FC<ColumnProps> = ({
           </div>
         )}
       </Droppable>
-
-      {!isArchiveColumn && (
-        <button
-          onClick={() => onAddTask(column.id)}
-          className="mt-2 w-full py-2 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 border border-blue-300 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
-        >
-          <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
-        </button>
-      )}
 
       <div className="mt-2 grid grid-cols-4 gap-2">
         {priorityCounts.map((priority) => (
