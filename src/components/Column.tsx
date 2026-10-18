@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Droppable } from 'react-beautiful-dnd';
-import { Column as ColumnType, Task as TaskType, BoardViewMode, TASK_PRIORITY_OPTIONS } from '../types';
+import { Column as ColumnType, Task as TaskType, BoardViewMode, TASK_PRIORITY_OPTIONS, TaskTextDisplayMode } from '../types';
 import { Task } from './Task';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -31,6 +31,7 @@ interface ColumnProps {
   minimizedTasks?: Set<string>;
   showHiddenTasks?: boolean;
   smallText?: boolean;
+  textDisplayMode: TaskTextDisplayMode;
 }
 
 export const Column: React.FC<ColumnProps> = ({ 
@@ -50,7 +51,8 @@ export const Column: React.FC<ColumnProps> = ({
   onToggleMinimize,
   minimizedTasks = new Set(),
   showHiddenTasks = false,
-  smallText = false
+  smallText = false,
+  textDisplayMode
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
@@ -185,6 +187,7 @@ export const Column: React.FC<ColumnProps> = ({
                 viewMode={viewMode}
                 showHiddenTasks={showHiddenTasks}
                 smallText={smallText}
+                textDisplayMode={textDisplayMode}
               />
             ))}
             {provided.placeholder}

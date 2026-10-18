@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Task as TaskType, BoardViewMode, getTaskPriorityOption } from '../types';
+import { Task as TaskType, BoardViewMode, Comment, TaskTextDisplayMode, getTaskPriorityOption } from '../types';
 import { TagBadge } from './TagBadge';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,7 +30,16 @@ interface TaskProps {
   viewMode?: BoardViewMode;
   showHiddenTasks?: boolean;
   smallText?: boolean;
+  textDisplayMode: TaskTextDisplayMode;
 }
+
+const getLatestComment = (comments: Comment[] = []) => {
+  return comments
+    .slice()
+    .sort((firstComment, secondComment) => (
+      new Date(secondComment.createdAt).getTime() - new Date(firstComment.createdAt).getTime()
+    ))[0]?.text || '';
+};
 
 export const Task: React.FC<TaskProps> = ({ 
   task, 
@@ -44,7 +53,8 @@ export const Task: React.FC<TaskProps> = ({
   isMinimized = false,
   viewMode = 'normal',
   showHiddenTasks = false,
-  smallText = false
+  smallText = false,
+  textDisplayMode
 }) => {
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
@@ -52,6 +62,11 @@ export const Task: React.FC<TaskProps> = ({
   const referenceToShow = task.reference || '';
   const isHidden = task.hidden || false;
   const priority = getTaskPriorityOption(task.priority);
+  const textToShow = textDisplayMode === 'nextStep'
+    ? task.nextStep || ''
+    : textDisplayMode === 'lastComment'
+      ? getLatestComment(task.comments || [])
+      : task.description || '';
   
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -245,9 +260,9 @@ export const Task: React.FC<TaskProps> = ({
                 </div>
               </div>
             
-              {task.description && (
+              {textToShow && (
                 <p className={`text-gray-600 dark:text-gray-300 mb-2 line-clamp-2 ${smallText ? 'text-xs' : 'text-sm'}`}>
-                  {task.description}
+                  {textToShow}
                 </p>
               )}
             

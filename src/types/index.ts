@@ -22,11 +22,19 @@ export const getTaskPriorityOption = (priority?: TaskPriority | null) => {
 
 export type TaskSortField = 'manual' | 'priority' | 'createdAt' | 'updatedAt';
 
+export type TaskTextDisplayMode = 'description' | 'nextStep' | 'lastComment';
+
 export const TASK_SORT_OPTIONS: Array<{ value: TaskSortField; label: string }> = [
   { value: 'manual', label: 'Manual' },
   { value: 'priority', label: 'Prioridad' },
   { value: 'createdAt', label: 'Fecha de creacion' },
   { value: 'updatedAt', label: 'Fecha de actualizacion' }
+];
+
+export const TASK_TEXT_DISPLAY_OPTIONS: Array<{ value: TaskTextDisplayMode; label: string }> = [
+  { value: 'description', label: 'Descripcion' },
+  { value: 'nextStep', label: 'Siguiente paso' },
+  { value: 'lastComment', label: 'Ultimo comentario' }
 ];
 
 export interface Task {

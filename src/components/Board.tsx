@@ -5,6 +5,7 @@ import { ImportExport } from './ImportExport';
 import { PriorityFilter } from './PriorityFilter';
 import { TagFilter } from './TagFilter';
 import { TaskSortControl } from './TaskSortControl';
+import { TaskTextDisplayControl } from './TaskTextDisplayControl';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { TaskNextStepModal } from './TaskNextStepModal';
@@ -13,7 +14,7 @@ import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task, TaskPriority, TaskSortField, getTaskPriorityOption } from '../types';
+import { Task, TaskPriority, TaskSortField, TaskTextDisplayMode, getTaskPriorityOption } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -75,6 +76,7 @@ export const Board: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<TaskPriority | null>(null);
   const [sortField, setSortField] = useState<TaskSortField>('manual');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [textDisplayMode, setTextDisplayMode] = useState<TaskTextDisplayMode>('description');
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
   const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
   const [allTasksMinimized, setAllTasksMinimized] = useState(false);
@@ -594,6 +596,10 @@ export const Board: React.FC = () => {
             selectedPriority={selectedPriority}
             onPrioritySelect={setSelectedPriority}
           />
+          <TaskTextDisplayControl
+            displayMode={textDisplayMode}
+            onDisplayModeChange={setTextDisplayMode}
+          />
           <TaskSortControl
             sortField={sortField}
             sortDirection={sortDirection}
@@ -679,6 +685,7 @@ export const Board: React.FC = () => {
                   viewMode={viewMode}
                   showHiddenTasks={showHiddenTasks}
                   smallText={smallText}
+                  textDisplayMode={textDisplayMode}
                 />
               ))}
           </div>
