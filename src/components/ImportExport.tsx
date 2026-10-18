@@ -37,7 +37,7 @@ interface ImportExportProps {
 
 export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks }) => {
   const { darkMode } = useTheme();
-  const { exportBoard, exportTasksCsv, importBoard } = useImportExport();
+  const { exportBoard, exportTasksCsv, exportTasksExcel, importBoard } = useImportExport();
   const { clearBoard, saveBoard, loadBoard } = useStorage();
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -68,7 +68,10 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
 
   const handleExportCsv = () => {
     const latestBoard = loadBoard() || board;
-    const allTasks = latestBoard.columns.flatMap(column => column.tasks);
+    const allTasks = latestBoard.columns
+      .slice()
+      .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
+      .flatMap(column => column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order));
     exportTasksCsv(latestBoard, allTasks);
     handleCloseMenu();
     showAlert('CSV exportado exitosamente', 'success');
@@ -79,6 +82,38 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
     exportTasksCsv(latestBoard, filteredTasks, 'quickmanage-tasks-filtered');
     handleCloseMenu();
     showAlert('CSV filtrado exportado exitosamente', 'success');
+  };
+
+  const handleExportExcel = async () => {
+    const latestBoard = loadBoard() || board;
+    const allTasks = latestBoard.columns
+      .slice()
+      .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
+      .flatMap(column => column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order));
+
+    try {
+      await exportTasksExcel(latestBoard, allTasks);
+      showAlert('Excel exportado exitosamente', 'success');
+    } catch (error) {
+      console.error('Error exporting tasks to Excel:', error);
+      showAlert('Error al exportar tasks a Excel', 'error');
+    } finally {
+      handleCloseMenu();
+    }
+  };
+
+  const handleExportFilteredExcel = async () => {
+    const latestBoard = loadBoard() || board;
+
+    try {
+      await exportTasksExcel(latestBoard, filteredTasks, 'quickmanage-tasks-filtered');
+      showAlert('Excel filtrado exportado exitosamente', 'success');
+    } catch (error) {
+      console.error('Error exporting filtered tasks to Excel:', error);
+      showAlert('Error al exportar Excel filtrado', 'error');
+    } finally {
+      handleCloseMenu();
+    }
   };
 
   const handleImportClick = () => {
@@ -160,6 +195,20 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
             <TableViewIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Exportar CSV (Filtrado)</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleExportExcel}>
+          <ListItemIcon>
+            <TableViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Exportar tasks a Excel</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleExportFilteredExcel}>
+          <ListItemIcon>
+            <TableViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Exportar Excel (Filtrado)</ListItemText>
         </MenuItem>
         
         <MenuItem onClick={handleImportClick}>

@@ -17,6 +17,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.14.20",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
