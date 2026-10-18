@@ -222,7 +222,16 @@ export const Column: React.FC<ColumnProps> = ({
         )}
       </Droppable>
 
-      <div className="mt-2 grid grid-cols-4 gap-2">
+      <div className="mt-3 pt-3">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+            Resumen
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600" />
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
         {priorityCounts.map((priority) => (
           <div
             key={priority.value}
@@ -234,6 +243,7 @@ export const Column: React.FC<ColumnProps> = ({
             <span>{priority.count}</span>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );
