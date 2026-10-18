@@ -4,6 +4,7 @@ import { TaskForm } from './TaskForm';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getDialogContentSx, getDialogSx, getDialogTitleSx } from './dialogTheme';
 
@@ -23,6 +24,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   onSubmit,
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
   
   const handleSubmit = (taskData: Omit<Task, 'id' | 'columnId' | 'order' | 'createdAt' | 'updatedAt'>) => {
     onSubmit(taskData, columnId);
@@ -38,7 +40,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       sx={getDialogSx(darkMode)}
     >
       <DialogTitle sx={getDialogTitleSx(darkMode)}>
-        {task ? 'Editar Tarea' : 'Nueva Tarea'}
+        {task ? t('taskForm.edit') : t('taskForm.new')}
       </DialogTitle>
       <DialogContent sx={getDialogContentSx(darkMode)}>
         <TaskForm

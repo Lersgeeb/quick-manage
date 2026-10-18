@@ -1,4 +1,5 @@
 import { saveAs } from 'file-saver';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Board, Comment, Task, getTaskPriorityOption } from '../types';
 
 const escapeCsvValue = (value: string) => {
@@ -16,14 +17,14 @@ const formatCsvDate = (dateValue: string) => {
   return parsedDate.toISOString().slice(0, 10);
 };
 
-const formatDateTime = (dateValue: string) => {
+const formatDateTime = (dateValue: string, locale: string) => {
   const parsedDate = new Date(dateValue);
 
   if (Number.isNaN(parsedDate.getTime())) {
     return dateValue;
   }
 
-  return parsedDate.toLocaleString('es-ES', {
+  return parsedDate.toLocaleString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -65,7 +66,7 @@ const getLatestCommentText = (comments: Comment[] = []) => {
     ))[0]?.text || '';
 };
 
-const getTasksExportData = (board: Board, tasks: Task[]) => {
+const getTasksExportData = (board: Board, tasks: Task[], locale: string) => {
   const columnTitlesById = new Map(board.columns.map(column => [column.id, column.title]));
 
   return tasks.map(task => {
@@ -81,8 +82,8 @@ const getTasksExportData = (board: Board, tasks: Task[]) => {
       nextStep: task.nextStep || '',
       createdAtRaw: task.createdAt,
       updatedAtRaw: task.updatedAt,
-      createdAt: formatDateTime(task.createdAt),
-      updatedAt: formatDateTime(task.updatedAt),
+      createdAt: formatDateTime(task.createdAt, locale),
+      updatedAt: formatDateTime(task.updatedAt, locale),
       description: task.description || '',
       lastComment: normalizeMultilineText(getLatestCommentText(task.comments || [])),
       latestComments: getLatestCommentsText(task.comments || [])
@@ -109,31 +110,34 @@ const getExcelColumnLetter = (columnNumber: number) => {
 };
 
 export const useImportExport = () => {
+  const { t, locale } = useLanguage();
+
   const exportBoard = (board: Board) => {
     const boardData = JSON.stringify(board, null, 2);
     const blob = new Blob([boardData], { type: 'application/json' });
-    saveAs(blob, `quickmanage-board-${new Date().toISOString().slice(0, 10)}.json`);
+    saveAs(blob, `${t('export.boardFile')}-${new Date().toISOString().slice(0, 10)}.json`);
   };
 
-  const exportTasksCsv = (board: Board, tasks: Task[], fileNamePrefix = 'quickmanage-tasks') => {
+  const exportTasksCsv = (board: Board, tasks: Task[], fileNamePrefix?: string) => {
+    const resolvedFileNamePrefix = fileNamePrefix || t('export.tasksFile');
     const headers = [
-      'Status',
-      'Tag',
-      'Priority',
-      'Name',
-      'Reference',
-      'Next Step',
-      'Creation Date',
-      'Last Modified Date',
-      'Description',
-      'Comments (last 3)'
+      t('export.status'),
+      t('export.tag'),
+      t('export.priority'),
+      t('export.name'),
+      t('export.reference'),
+      t('export.nextStep'),
+      t('export.creationDate'),
+      t('export.lastModifiedDate'),
+      t('export.description'),
+      t('export.last3Comments')
     ];
 
-    const rows = getTasksExportData(board, tasks).map(task => {
+    const rows = getTasksExportData(board, tasks, locale).map(task => {
       return [
         task.status,
         task.tag,
-        task.priorityLabel,
+        t(task.priorityLabel),
         task.name,
         task.reference,
         task.nextStep,
@@ -147,10 +151,11 @@ export const useImportExport = () => {
     const csvContent = `\uFEFF${[headers.map(escapeCsvValue).join(','), ...rows].join('\r\n')}`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-    saveAs(blob, `${fileNamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`);
+    saveAs(blob, `${resolvedFileNamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const exportTasksExcel = async (board: Board, tasks: Task[], fileNamePrefix = 'quickmanage-tasks') => {
+  const exportTasksExcel = async (board: Board, tasks: Task[], fileNamePrefix?: string) => {
+    const resolvedFileNamePrefix = fileNamePrefix || t('export.tasksFile');
     const { Workbook } = await import('exceljs');
     const workbook = new Workbook();
     workbook.creator = 'QuickManage';
@@ -162,22 +167,25 @@ export const useImportExport = () => {
     });
 
     worksheet.columns = [
-      { header: 'Status', key: 'status', width: 22 },
-      { header: 'Tag', key: 'tag', width: 20 },
-      { header: 'Priority', key: 'priorityLabel', width: 14 },
-      { header: 'Name', key: 'name', width: 30 },
-      { header: 'Reference', key: 'reference', width: 18 },
-      { header: 'Next Step', key: 'nextStep', width: 36 },
-      { header: 'Creation Date', key: 'createdAt', width: 20 },
-      { header: 'Last Modified Date', key: 'updatedAt', width: 20 },
-      { header: 'Description', key: 'description', width: 40 },
-      { header: 'Last Comment', key: 'lastComment', width: 42 },
-      { header: 'Comments (last 3)', key: 'latestComments', width: 48 }
+      { header: t('export.status'), key: 'status', width: 22 },
+      { header: t('export.tag'), key: 'tag', width: 20 },
+      { header: t('export.priority'), key: 'priorityLabel', width: 14 },
+      { header: t('export.name'), key: 'name', width: 30 },
+      { header: t('export.reference'), key: 'reference', width: 18 },
+      { header: t('export.nextStep'), key: 'nextStep', width: 36 },
+      { header: t('export.creationDate'), key: 'createdAt', width: 20 },
+      { header: t('export.lastModifiedDate'), key: 'updatedAt', width: 20 },
+      { header: t('export.description'), key: 'description', width: 40 },
+      { header: t('export.lastComment'), key: 'lastComment', width: 42 },
+      { header: t('export.last3Comments'), key: 'latestComments', width: 48 }
     ];
 
-    const exportRows = getTasksExportData(board, tasks);
+    const exportRows = getTasksExportData(board, tasks, locale);
     exportRows.forEach(row => {
-      worksheet.addRow(row);
+      worksheet.addRow({
+        ...row,
+        priorityLabel: t(row.priorityLabel)
+      });
     });
 
     const lastColumnLetter = getExcelColumnLetter(worksheet.columns.length);
@@ -252,7 +260,7 @@ export const useImportExport = () => {
       { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
     );
 
-    saveAs(blob, `${fileNamePrefix}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    saveAs(blob, `${resolvedFileNamePrefix}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const importBoard = (file: File): Promise<Board> => {

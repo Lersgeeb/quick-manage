@@ -12,6 +12,7 @@ import Tooltip from '@mui/material/Tooltip';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Task, getTaskPriorityOption } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { TagBadge } from './TagBadge';
@@ -50,6 +51,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onCompleteNextStep
 }) => {
   const { darkMode } = useTheme();
+  const { t, locale } = useLanguage();
   const [isEditingNextStep, setIsEditingNextStep] = useState(false);
   const [nextStepDraft, setNextStepDraft] = useState('');
 
@@ -65,7 +67,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleString('es-ES', {
+      return date.toLocaleString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -73,7 +75,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
         minute: '2-digit'
       });
     } catch (error) {
-      return 'Fecha inválida';
+      return t('taskDetails.invalidDate');
     }
   };
 
@@ -118,18 +120,18 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <TagBadge tag={task.tag} color={task.tagColor} />
               {task.reference && (
                 <span className={`rounded-full px-3 py-1 text-xs font-mono ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'}`}>
-                  Ref: {task.reference}
+                  {t('taskDetails.reference')} {task.reference}
                 </span>
               )}
             </div>
             <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
-              Resumen
+              {t('taskDetails.summary')}
             </Typography>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <Typography sx={{ color: darkMode ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
                 {task.title}
               </Typography>
-              <TagBadge tag={priority.label} color={priority.color} />
+              <TagBadge tag={t(priority.label)} color={priority.color} />
             </div>
           </Box>
           
@@ -137,7 +139,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           {task.description && (
             <Box sx={getModalSectionSx(darkMode)}>
               <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
-                Descripción
+                {t('taskDetails.description')}
               </Typography>
               <Typography className="mt-1 whitespace-pre-wrap text-sm">
                 {task.description}
@@ -148,10 +150,10 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           <Box sx={getModalSectionSx(darkMode)}>
             <div className="mb-3 flex items-center justify-between gap-3">
               <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
-                Siguiente paso
+                {t('taskDetails.nextStep')}
               </Typography>
               <div className="flex items-center gap-1">
-                <Tooltip title="Editar">
+                <Tooltip title={t('taskDetails.edit')}>
                   <span>
                     <IconButton
                       size="small"
@@ -163,7 +165,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   </span>
                 </Tooltip>
                 {isEditingNextStep && (
-                  <Tooltip title="Guardar">
+                  <Tooltip title={t('taskDetails.save')}>
                     <span>
                       <IconButton
                         size="small"
@@ -176,7 +178,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                     </span>
                   </Tooltip>
                 )}
-                <Tooltip title="Marcar como realizado">
+                <Tooltip title={t('taskDetails.complete')}>
                   <span>
                     <IconButton
                       size="small"
@@ -197,8 +199,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                 minRows={3}
                 value={nextStepDraft}
                 onChange={(event) => setNextStepDraft(event.target.value)}
-                label="Siguiente paso"
-                placeholder="Describe el siguiente paso..."
+                label={t('taskDetails.nextStep')}
+                placeholder={t('nextStep.placeholder')}
                 sx={getDialogTextFieldSx(darkMode)}
               />
             ) : nextStepDraft.trim() ? (
@@ -207,7 +209,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               </Typography>
             ) : (
               <Typography className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                No hay un siguiente paso definido.
+                {t('taskDetails.noNextStep')}
               </Typography>
             )}
           </Box>
@@ -216,10 +218,10 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           <Box sx={{ ...getModalInnerSurfaceSx(darkMode), p: 2.25 }}>
             <div className={`grid grid-cols-1 gap-2 text-xs md:grid-cols-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               <div>
-                <span className="font-semibold">Creado:</span> {formatDate(task.createdAt)}
+                <span className="font-semibold">{t('taskDetails.createdAt')}</span> {formatDate(task.createdAt)}
               </div>
               <div>
-                <span className="font-semibold">Actualizado:</span> {formatDate(task.updatedAt)}
+                <span className="font-semibold">{t('taskDetails.updatedAt')}</span> {formatDate(task.updatedAt)}
               </div>
             </div>
           </Box>
@@ -229,6 +231,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <TaskComments
               taskId={task.id}
               comments={task.comments || []}
+              title={t('comments.log')}
               onAddComment={handleAddComment}
               onEditComment={onEditComment}
               onDeleteComment={onDeleteComment}
@@ -243,7 +246,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           variant="outlined"
           sx={secondaryDialogButtonSx}
         >
-          Cerrar
+          {t('taskDetails.close')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -6,6 +6,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Task } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -34,6 +35,7 @@ export const TaskNextStepModal: React.FC<TaskNextStepModalProps> = ({
   onComplete
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
   const [nextStep, setNextStep] = useState('');
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export const TaskNextStepModal: React.FC<TaskNextStepModalProps> = ({
       sx={getDialogSx(darkMode)}
     >
       <DialogTitle sx={getDialogTitleSx(darkMode)}>
-        Siguientes pasos
+        {t('nextStep.title')}
       </DialogTitle>
       <DialogContent sx={getDialogContentSx(darkMode)}>
         <div className="space-y-4 pt-2">
@@ -77,17 +79,17 @@ export const TaskNextStepModal: React.FC<TaskNextStepModalProps> = ({
             fullWidth
             multiline
             minRows={4}
-            label="¿Qué se necesita para cumplir con esta tarea?"
+            label={t('nextStep.question')}
             value={nextStep}
             onChange={(event) => setNextStep(event.target.value)}
-            placeholder="Describe el siguiente paso..."
+            placeholder={t('nextStep.placeholder')}
             sx={getDialogTextFieldSx(darkMode)}
           />
         </div>
       </DialogContent>
       <DialogActions sx={getDialogActionsSx(darkMode)}>
         <Button onClick={onClose} variant="outlined" sx={secondaryDialogButtonSx}>
-          Cancelar
+          {t('board.cancel')}
         </Button>
         <Button
           onClick={handleComplete}
@@ -95,7 +97,7 @@ export const TaskNextStepModal: React.FC<TaskNextStepModalProps> = ({
           color="success"
           disabled={!trimmedNextStep}
         >
-          Dar por finalizado
+          {t('nextStep.complete')}
         </Button>
         <Button
           onClick={handleSave}
@@ -103,7 +105,7 @@ export const TaskNextStepModal: React.FC<TaskNextStepModalProps> = ({
           disabled={!hasChanges}
           sx={getPrimaryDialogButtonSx(darkMode)}
         >
-          Guardar
+          {t('nextStep.save')}
         </Button>
       </DialogActions>
     </Dialog>

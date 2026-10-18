@@ -19,6 +19,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   dangerDialogButtonSx,
@@ -37,6 +38,7 @@ interface ImportExportProps {
 
 export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
   const { exportBoard, exportTasksCsv, exportTasksExcel, importBoard } = useImportExport();
   const { clearBoard, saveBoard, loadBoard } = useStorage();
   
@@ -63,7 +65,7 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
     const latestBoard = loadBoard() || board;
     exportBoard(latestBoard);
     handleCloseMenu();
-    showAlert('Tablero exportado exitosamente', 'success');
+    showAlert(t('options.boardExported'), 'success');
   };
 
   const handleExportCsv = () => {
@@ -72,16 +74,16 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
       .slice()
       .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
       .flatMap(column => column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order));
-    exportTasksCsv(latestBoard, allTasks);
+    exportTasksCsv(latestBoard, allTasks, t('export.tasksFile'));
     handleCloseMenu();
-    showAlert('CSV exportado exitosamente', 'success');
+    showAlert(t('options.csvExported'), 'success');
   };
 
   const handleExportFilteredCsv = () => {
     const latestBoard = loadBoard() || board;
-    exportTasksCsv(latestBoard, filteredTasks, 'quickmanage-tasks-filtered');
+    exportTasksCsv(latestBoard, filteredTasks, t('export.filteredTasksFile'));
     handleCloseMenu();
-    showAlert('CSV filtrado exportado exitosamente', 'success');
+    showAlert(t('options.csvFilteredExported'), 'success');
   };
 
   const handleExportExcel = async () => {
@@ -92,11 +94,11 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
       .flatMap(column => column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order));
 
     try {
-      await exportTasksExcel(latestBoard, allTasks);
-      showAlert('Excel exportado exitosamente', 'success');
+      await exportTasksExcel(latestBoard, allTasks, t('export.tasksFile'));
+      showAlert(t('options.excelExported'), 'success');
     } catch (error) {
       console.error('Error exporting tasks to Excel:', error);
-      showAlert('Error al exportar tasks a Excel', 'error');
+      showAlert(t('options.exportExcelError'), 'error');
     } finally {
       handleCloseMenu();
     }
@@ -106,11 +108,11 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
     const latestBoard = loadBoard() || board;
 
     try {
-      await exportTasksExcel(latestBoard, filteredTasks, 'quickmanage-tasks-filtered');
-      showAlert('Excel filtrado exportado exitosamente', 'success');
+      await exportTasksExcel(latestBoard, filteredTasks, t('export.filteredTasksFile'));
+      showAlert(t('options.excelFilteredExported'), 'success');
     } catch (error) {
       console.error('Error exporting filtered tasks to Excel:', error);
-      showAlert('Error al exportar Excel filtrado', 'error');
+      showAlert(t('options.exportExcelFilteredError'), 'error');
     } finally {
       handleCloseMenu();
     }
@@ -131,12 +133,12 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
       const importedBoard = await importBoard(file);
       // Save the imported board to localStorage
       saveBoard(importedBoard);
-      showAlert('Tablero importado exitosamente', 'success');
+      showAlert(t('options.imported'), 'success');
       // Reload the page to show the imported board
       window.location.reload();
     } catch (error) {
       console.error('Error importing board:', error);
-      showAlert('Error al importar el tablero', 'error');
+      showAlert(t('options.importError'), 'error');
     }
 
     // Reset file input
@@ -148,7 +150,7 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
   const handleClearBoard = () => {
     clearBoard();
     setIsDeleteDialogOpen(false);
-    showAlert('Tablero eliminado', 'success');
+    showAlert(t('options.deleted'), 'success');
     // Reload the page to reset the board
     window.location.reload();
   };
@@ -168,7 +170,7 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
         endIcon={<ExpandMoreIcon />}
         onClick={handleOpenMenu}
       >
-        Opciones
+        {t('options.label')}
       </Button>
       
       <Menu
@@ -180,49 +182,49 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
           <ListItemIcon>
             <FileDownloadIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Exportar tablero</ListItemText>
+          <ListItemText>{t('options.exportBoard')}</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleExportCsv}>
           <ListItemIcon>
             <TableViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Exportar tasks a CSV</ListItemText>
+          <ListItemText>{t('options.exportCsv')}</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleExportFilteredCsv}>
           <ListItemIcon>
             <TableViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Exportar CSV (Filtrado)</ListItemText>
+          <ListItemText>{t('options.exportCsvFiltered')}</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon>
             <TableViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Exportar tasks a Excel</ListItemText>
+          <ListItemText>{t('options.exportExcel')}</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleExportFilteredExcel}>
           <ListItemIcon>
             <TableViewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Exportar Excel (Filtrado)</ListItemText>
+          <ListItemText>{t('options.exportExcelFiltered')}</ListItemText>
         </MenuItem>
         
         <MenuItem onClick={handleImportClick}>
           <ListItemIcon>
             <FileUploadIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Importar tablero</ListItemText>
+          <ListItemText>{t('options.importBoard')}</ListItemText>
         </MenuItem>
         
         <MenuItem onClick={() => { setIsDeleteDialogOpen(true); handleCloseMenu(); }}>
           <ListItemIcon>
             <DeleteForeverIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>Eliminar tablero</ListItemText>
+          <ListItemText>{t('options.deleteBoard')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -241,18 +243,18 @@ export const ImportExport: React.FC<ImportExportProps> = ({ board, filteredTasks
         onClose={() => setIsDeleteDialogOpen(false)}
         sx={getDialogSx(darkMode)}
       >
-        <DialogTitle sx={getDialogTitleSx(darkMode)}>Eliminar tablero</DialogTitle>
+        <DialogTitle sx={getDialogTitleSx(darkMode)}>{t('options.deleteDialogTitle')}</DialogTitle>
         <DialogContent sx={getDialogContentSx(darkMode)}>
           <DialogContentText sx={getDialogContentTextSx(darkMode)}>
-            ¿Estás seguro de que quieres eliminar el tablero? Esta acción no se puede deshacer.
+            {t('options.deleteDialogText')}
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={getDialogActionsSx(darkMode)}>
           <Button onClick={() => setIsDeleteDialogOpen(false)} variant="outlined" sx={secondaryDialogButtonSx}>
-            Cancelar
+            {t('board.cancel')}
           </Button>
           <Button onClick={handleClearBoard} color="error" variant="contained" sx={dangerDialogButtonSx}>
-            Eliminar
+            {t('options.delete')}
           </Button>
         </DialogActions>
       </Dialog>

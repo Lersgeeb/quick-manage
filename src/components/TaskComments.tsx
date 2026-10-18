@@ -17,6 +17,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Comment } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -35,9 +36,10 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
-  title = 'Bitácora de comentarios'
+  title
 }) => {
   const { darkMode } = useTheme();
+  const { t, locale } = useLanguage();
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -72,7 +74,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleString('es-ES', {
+      return date.toLocaleString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -80,7 +82,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
         minute: '2-digit'
       });
     } catch (error) {
-      return 'Fecha inválida';
+      return t('taskDetails.invalidDate');
     }
   };
 
@@ -122,9 +124,9 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
           component="h4"
           className={`text-lg font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}
         >
-          {title}
+          {title || t('comments.log')}
         </Typography>
-        <Tooltip title={sortDirection === 'desc' ? 'Más nuevos primero' : 'Más antiguos primero'}>
+        <Tooltip title={sortDirection === 'desc' ? t('comments.newestFirst') : t('comments.oldestFirst')}>
           <span>
             <IconButton
               size="small"
@@ -225,9 +227,9 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
                   primary={comment.text}
                   secondary={
                     <span>
-                      <span>Creado: {formatDate(comment.createdAt)}</span>
+                      <span>{t('comments.createdAt')} {formatDate(comment.createdAt)}</span>
                       {comment.updatedAt !== comment.createdAt && (
-                        <span className="ml-3">Actualizado: {formatDate(comment.updatedAt)}</span>
+                      <span className="ml-3">{t('comments.updatedAt')} {formatDate(comment.updatedAt)}</span>
                       )}
                     </span>
                   }
@@ -275,14 +277,14 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
                 >
                   {[5, 10, 15, 20, 25, 30].map((size) => (
                     <MenuItem key={size} value={size} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
-                      {size} por página
+                      {t('comments.perPage', { count: size })}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
 
               <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {sortedComments.length} comentario{sortedComments.length === 1 ? '' : 's'}
+                {t('comments.count', { count: sortedComments.length })}
               </div>
             </div>
 
@@ -308,7 +310,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
         </>
       ) : (
         <div className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          No hay comentarios. Agrega el primer comentario.
+          {t('comments.noComments')}
         </div>
       )}
 
@@ -318,11 +320,11 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
           fullWidth
           multiline
           rows={3}
-          label="Nuevo comentario"
+          label={t('comments.newComment')}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           variant="outlined"
-          placeholder="Escribe un comentario..."
+          placeholder={t('comments.placeholder')}
           sx={{
             '& .MuiOutlinedInput-root': {
               color: darkMode ? 'white' : 'inherit',
@@ -356,7 +358,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
               }
             }}
           >
-            Agregar comentario
+            {t('comments.add')}
           </Button>
         </div>
       </div>

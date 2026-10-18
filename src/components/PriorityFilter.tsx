@@ -5,6 +5,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
 import FlagIcon from '@mui/icons-material/Flag';
+import { useLanguage } from '../contexts/LanguageContext';
 import { TASK_PRIORITY_OPTIONS, TaskPriority } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -18,6 +19,7 @@ export const PriorityFilter: React.FC<PriorityFilterProps> = ({
   onPrioritySelect
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value as TaskPriority | 'all';
@@ -55,13 +57,13 @@ export const PriorityFilter: React.FC<PriorityFilterProps> = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <FlagIcon sx={{ mr: 0.5, fontSize: 18 }} />
-          Filtrar por prioridad
+          {t('filters.priority')}
         </Box>
       </InputLabel>
       <Select
         labelId="priority-filter-label"
         value={displayValue}
-        label=".......Filtrar por prioridad"
+        label={`.......${t('filters.priority')}`}
         onChange={handleChange}
         className={darkModeClasses.select}
         sx={{
@@ -83,7 +85,7 @@ export const PriorityFilter: React.FC<PriorityFilterProps> = ({
         }}
       >
         <MenuItem value="all" className={darkModeClasses.menuItem}>
-          <em>Todas las prioridades</em>
+          <em>{t('filters.allPriorities')}</em>
         </MenuItem>
         {TASK_PRIORITY_OPTIONS.map((option) => (
           <MenuItem key={option.value} value={option.value} className={darkModeClasses.menuItem}>
@@ -97,7 +99,7 @@ export const PriorityFilter: React.FC<PriorityFilterProps> = ({
                   mr: 1
                 }}
               />
-              {option.label}
+              {t(option.label)}
             </Box>
           </MenuItem>
         ))}

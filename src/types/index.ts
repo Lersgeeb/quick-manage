@@ -10,10 +10,10 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 export const DEFAULT_TASK_PRIORITY: TaskPriority = 'low';
 
 export const TASK_PRIORITY_OPTIONS: Array<{ value: TaskPriority; label: string; color: string }> = [
-  { value: 'low', label: 'Bajo', color: '#23C0DF' },
-  { value: 'medium', label: 'Medio', color: '#FBC833' },
-  { value: 'high', label: 'Alto', color: '#E77009' },
-  { value: 'critical', label: 'Critico', color: '#FF5A50' }
+  { value: 'low', label: 'priority.low', color: '#23C0DF' },
+  { value: 'medium', label: 'priority.medium', color: '#FBC833' },
+  { value: 'high', label: 'priority.high', color: '#E77009' },
+  { value: 'critical', label: 'priority.critical', color: '#FF5A50' }
 ];
 
 export const getTaskPriorityOption = (priority?: TaskPriority | null) => {
@@ -25,16 +25,16 @@ export type TaskSortField = 'manual' | 'priority' | 'createdAt' | 'updatedAt';
 export type TaskTextDisplayMode = 'description' | 'nextStep' | 'lastComment';
 
 export const TASK_SORT_OPTIONS: Array<{ value: TaskSortField; label: string }> = [
-  { value: 'manual', label: 'Manual' },
-  { value: 'priority', label: 'Prioridad' },
-  { value: 'createdAt', label: 'Fecha de creacion' },
-  { value: 'updatedAt', label: 'Fecha de actualizacion' }
+  { value: 'manual', label: 'sort.manual' },
+  { value: 'priority', label: 'sort.priority' },
+  { value: 'createdAt', label: 'sort.createdAt' },
+  { value: 'updatedAt', label: 'sort.updatedAt' }
 ];
 
 export const TASK_TEXT_DISPLAY_OPTIONS: Array<{ value: TaskTextDisplayMode; label: string }> = [
-  { value: 'description', label: 'Descripcion' },
-  { value: 'nextStep', label: 'Siguiente paso' },
-  { value: 'lastComment', label: 'Ultimo comentario' }
+  { value: 'description', label: 'text.description' },
+  { value: 'nextStep', label: 'text.nextStep' },
+  { value: 'lastComment', label: 'text.lastComment' }
 ];
 
 export interface Task {

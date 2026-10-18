@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { DEFAULT_TASK_PRIORITY, TASK_PRIORITY_OPTIONS, Task } from '../types';
 
 interface TaskFormProps {
@@ -21,6 +22,7 @@ const DEFAULT_COLORS = [
 ];
 
 export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) => {
+  const { t } = useLanguage();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [tag, setTag] = useState(task?.tag || '');
@@ -44,7 +46,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
     <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-200/80 bg-slate-50/80 p-1 dark:border-slate-700/70 dark:bg-slate-900/30 p-6">
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="title">
-          Título
+          {t('taskForm.title')}
         </label>
         <input
           id="title"
@@ -58,7 +60,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="description">
-          Descripción
+          {t('taskForm.description')}
         </label>
         <textarea
           id="description"
@@ -71,7 +73,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="tag">
-          Etiqueta
+          {t('taskForm.tag')}
         </label>
         <input
           id="tag"
@@ -85,7 +87,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1" htmlFor="reference">
-          Referencia
+          {t('taskForm.reference')}
         </label>
         <input
           id="reference"
@@ -93,13 +95,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
           className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           value={reference}
           onChange={(e) => setReference(e.target.value)}
-          placeholder="Ej. TASK-123"
+          placeholder={t('taskForm.referencePlaceholder')}
         />
       </div>
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
-          Prioridad
+          {t('taskForm.priority')}
         </label>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TASK_PRIORITY_OPTIONS.map((option) => (
@@ -121,7 +123,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
                 className="mb-1 block h-2 w-full rounded-full"
                 style={{ backgroundColor: option.color }}
               />
-              {option.label}
+              {t(option.label)}
             </button>
           ))}
         </div>
@@ -129,14 +131,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-1">
-          Color de etiqueta
+          {t('taskForm.tagColor')}
         </label>
         <div className="flex flex-wrap gap-2">
           {DEFAULT_COLORS.map((color) => (
             <button
               key={color}
               type="button"
-              aria-label={`Seleccionar color ${color}`}
+              aria-label={t('taskForm.selectColor', { color })}
               className={`h-7 w-7 rounded-full border border-white/70 shadow-sm transition ${
                 tagColor === color ? 'scale-110 ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-105'
               }`}
@@ -153,13 +155,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ task, onSubmit, onCancel }) 
           className="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           onClick={onCancel}
         >
-          Cancelar
+          {t('taskForm.cancel')}
         </button>
         <button
           type="submit"
           className="rounded-xl bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
         >
-          {task ? 'Actualizar' : 'Crear'}
+          {task ? t('taskForm.update') : t('taskForm.create')}
         </button>
       </div>
     </form>

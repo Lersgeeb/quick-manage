@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Board, Column, Task, Comment, BoardViewMode, DEFAULT_TASK_PRIORITY, TaskPriority } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useStorage } from './useStorage';
-
-const ARCHIVE_COLUMN_TITLE = 'Archivadas';
 
 const isTaskPriority = (value: unknown): value is TaskPriority => {
   return value === 'low' || value === 'medium' || value === 'high' || value === 'critical';
@@ -39,6 +38,7 @@ const normalizeBoard = (board: Board): Board => ({
 });
 
 export const useBoard = () => {
+  const { t } = useLanguage();
   const [board, setBoard] = useState<Board>({ columns: [] });
   const [viewMode, setViewMode] = useState<BoardViewMode>('normal');
   const { saveBoard, loadBoard, isLoading, setIsLoading, saveViewMode, loadViewMode } = useStorage();
@@ -52,9 +52,9 @@ export const useBoard = () => {
     } else {
       // Initialize with default columns if no saved data
       const defaultColumns: Column[] = [
-        { id: uuidv4(), title: 'Por hacer', tasks: [], order: 0 },
-        { id: uuidv4(), title: 'En progreso', tasks: [], order: 1 },
-        { id: uuidv4(), title: 'Completado', tasks: [], order: 2 },
+        { id: uuidv4(), title: t('boardData.todo'), tasks: [], order: 0 },
+        { id: uuidv4(), title: t('boardData.inProgress'), tasks: [], order: 1 },
+        { id: uuidv4(), title: t('boardData.completed'), tasks: [], order: 2 },
       ];
       setBoard({ columns: defaultColumns });
     }
@@ -89,7 +89,7 @@ export const useBoard = () => {
 
     const archiveColumn: Column = {
       id: uuidv4(),
-      title: ARCHIVE_COLUMN_TITLE,
+      title: t('boardData.archive'),
       tasks: [],
       order: columns.length,
       isArchive: true
@@ -117,17 +117,17 @@ export const useBoard = () => {
       setBoard(prev => {
         // Create default presentation columns if they don't exist
         const presentationCols = prev.presentationColumns || [
-          { 
-            id: uuidv4(), 
-            title: 'Pendientes sin revisar', 
-            tasks: [], 
-            order: 0 
+          {
+            id: uuidv4(),
+            title: t('boardData.unreviewed'),
+            tasks: [],
+            order: 0
           },
-          { 
-            id: uuidv4(), 
-            title: 'Pendientes revisados', 
-            tasks: [], 
-            order: 1 
+          {
+            id: uuidv4(),
+            title: t('boardData.reviewed'),
+            tasks: [],
+            order: 1
           }
         ];
         
@@ -719,7 +719,7 @@ export const useBoard = () => {
 
           const newComment: Comment = {
             id: uuidv4(),
-            text: `Se completó el siguiente paso:\n${trimmedNextStep}`,
+            text: t('boardData.nextStepCompleted', { text: trimmedNextStep }),
             createdAt: now,
             updatedAt: now
           };

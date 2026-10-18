@@ -18,6 +18,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface TaskProps {
   task: TaskType;
@@ -60,6 +61,7 @@ export const Task: React.FC<TaskProps> = ({
   smallText = false,
   textDisplayMode
 }) => {
+  const { t } = useLanguage();
   // Compatibilidad con datos antiguos
   const tagToShow = task.tag || (task as any).client || '';
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
@@ -122,7 +124,7 @@ export const Task: React.FC<TaskProps> = ({
                 }
                 <h3 className={`font-medium text-gray-800 dark:text-gray-100 ${smallText ? 'text-sm' : ''}`}>
                   {task.title}
-                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
+                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">{t('task.hidden')}</span>}
                 </h3>
               </div>
               
@@ -130,7 +132,7 @@ export const Task: React.FC<TaskProps> = ({
                 onClick={e => e.stopPropagation()}
                 {...provided.dragHandleProps && {}}
               >
-                <Tooltip title="Opciones">
+                <Tooltip title={t('column.options')}>
                   <button 
                     onClick={handleOpenMenu}
                     className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-0.5 cursor-pointer"
@@ -148,26 +150,26 @@ export const Task: React.FC<TaskProps> = ({
                       <ListItemIcon>
                         {isMinimized ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
                       </ListItemIcon>
-                      <ListItemText>{isMinimized ? "Expandir" : "Minimizar"}</ListItemText>
+                      <ListItemText>{isMinimized ? t('task.expand') : t('task.minimize')}</ListItemText>
                     </MenuItem>
                   )}
                   <MenuItem onClick={() => handleAction(() => onViewDetails(task.id))}>
                     <ListItemIcon>
                       <MoreHorizIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Ver detalles</ListItemText>
+                    <ListItemText>{t('task.viewDetails')}</ListItemText>
                   </MenuItem>
                   <MenuItem onClick={() => handleAction(() => onManageNextStep(task.id))}>
                     <ListItemIcon>
                       <PlaylistAddCheckIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Siguientes pasos</ListItemText>
+                    <ListItemText>{t('task.nextSteps')}</ListItemText>
                   </MenuItem>
                   <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
                     <ListItemIcon>
                       <EditIcon fontSize="small" className="text-blue-500" />
                     </ListItemIcon>
-                    <ListItemText>Editar</ListItemText>
+                    <ListItemText>{t('task.edit')}</ListItemText>
                   </MenuItem>
                   {viewMode === 'normal' && (
                     <>
@@ -175,7 +177,7 @@ export const Task: React.FC<TaskProps> = ({
                         <ListItemIcon>
                           {isArchived ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
                         </ListItemIcon>
-                        <ListItemText>{isArchived ? "Desarchivar" : "Archivar"}</ListItemText>
+                        <ListItemText>{isArchived ? t('task.unarchive') : t('task.archive')}</ListItemText>
                       </MenuItem>
                       <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
                         <ListItemIcon>
@@ -184,13 +186,13 @@ export const Task: React.FC<TaskProps> = ({
                             <VisibilityOffIcon fontSize="small" className="text-purple-500" />
                           }
                         </ListItemIcon>
-                        <ListItemText>{isHidden ? "Mostrar tarea" : "Ocultar tarea"}</ListItemText>
+                        <ListItemText>{isHidden ? t('task.showTask') : t('task.hideTask')}</ListItemText>
                       </MenuItem>
                       <MenuItem onClick={() => handleAction(() => onDelete(task.id))}>
                         <ListItemIcon>
                           <DeleteIcon fontSize="small" className="text-red-500" />
                         </ListItemIcon>
-                        <ListItemText>Eliminar</ListItemText>
+                        <ListItemText>{t('task.delete')}</ListItemText>
                       </MenuItem>
                     </>
                   )}
@@ -203,13 +205,13 @@ export const Task: React.FC<TaskProps> = ({
               <div className="flex justify-between items-start mb-2">
                 <h3 className={`font-medium text-gray-800 dark:text-gray-100 ${smallText ? 'text-sm' : ''}`}>
                   {task.title}
-                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">(oculta)</span>}
+                  {isHidden && showHiddenTasks && <span className="ml-2 text-xs text-gray-400">{t('task.hidden')}</span>}
                 </h3>
                 <div 
                   onClick={e => e.stopPropagation()}
                   {...provided.dragHandleProps && {}}
                 >
-                  <Tooltip title="Opciones">
+                  <Tooltip title={t('column.options')}>
                     <button 
                       onClick={handleOpenMenu}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1 cursor-pointer"
@@ -227,26 +229,26 @@ export const Task: React.FC<TaskProps> = ({
                         <ListItemIcon>
                           <UnfoldLessIcon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Minimizar</ListItemText>
+                        <ListItemText>{t('task.minimize')}</ListItemText>
                       </MenuItem>
                     )}
                     <MenuItem onClick={() => handleAction(() => onViewDetails(task.id))}>
                       <ListItemIcon>
                         <MoreHorizIcon fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText>Ver detalles</ListItemText>
+                      <ListItemText>{t('task.viewDetails')}</ListItemText>
                     </MenuItem>
                     <MenuItem onClick={() => handleAction(() => onManageNextStep(task.id))}>
                       <ListItemIcon>
                         <PlaylistAddCheckIcon fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText>Siguientes pasos</ListItemText>
+                      <ListItemText>{t('task.nextSteps')}</ListItemText>
                     </MenuItem>
                     <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
                       <ListItemIcon>
                         <EditIcon fontSize="small" className="text-blue-500" />
                       </ListItemIcon>
-                      <ListItemText>Editar</ListItemText>
+                      <ListItemText>{t('task.edit')}</ListItemText>
                     </MenuItem>
                     {viewMode === 'normal' && (
                       <>
@@ -254,7 +256,7 @@ export const Task: React.FC<TaskProps> = ({
                           <ListItemIcon>
                             {isArchived ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
                           </ListItemIcon>
-                          <ListItemText>{isArchived ? "Desarchivar" : "Archivar"}</ListItemText>
+                          <ListItemText>{isArchived ? t('task.unarchive') : t('task.archive')}</ListItemText>
                         </MenuItem>
                         <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
                           <ListItemIcon>
@@ -263,13 +265,13 @@ export const Task: React.FC<TaskProps> = ({
                               <VisibilityOffIcon fontSize="small" className="text-purple-500" />
                             }
                           </ListItemIcon>
-                          <ListItemText>{isHidden ? "Mostrar tarea" : "Ocultar tarea"}</ListItemText>
+                          <ListItemText>{isHidden ? t('task.showTask') : t('task.hideTask')}</ListItemText>
                         </MenuItem>
                         <MenuItem onClick={() => handleAction(() => onDelete(task.id))}>
                           <ListItemIcon>
                             <DeleteIcon fontSize="small" className="text-red-500" />
                           </ListItemIcon>
-                          <ListItemText>Eliminar</ListItemText>
+                          <ListItemText>{t('task.delete')}</ListItemText>
                         </MenuItem>
                       </>
                     )}

@@ -9,9 +9,11 @@ import { TaskTextDisplayControl } from './TaskTextDisplayControl';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { TaskNextStepModal } from './TaskNextStepModal';
+import { LanguageSelector } from './LanguageSelector';
 import { PresentationBoard } from './PresentationBoard';
 import { ThemeToggle } from './ThemeToggle';
 import { PresentationModeToggle } from './PresentationModeToggle';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
@@ -53,6 +55,7 @@ import {
 
 export const Board: React.FC = () => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
   const { 
     board, 
     viewMode,
@@ -615,9 +618,10 @@ export const Board: React.FC = () => {
     <div className="flex h-full min-h-0 flex-col p-4 dark:bg-gray-900 dark:text-white transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          QuickManage {viewMode === 'presentation' && '- Modo Presentación'}
+          {viewMode === 'presentation' ? t('board.titlePresentation') : t('board.title')}
         </h1>
         <div className="flex space-x-2 items-center">
+          <LanguageSelector />
           <ThemeToggle />
           <ImportExport board={board} filteredTasks={filteredTasksForExport} />
           <Button
@@ -626,7 +630,7 @@ export const Board: React.FC = () => {
             color="secondary"
             startIcon={<ViewQuiltOutlinedIcon />}
           >
-            Vista
+            {t('board.view')}
           </Button>
           <Menu
             anchorEl={displayMenuAnchorEl}
@@ -642,14 +646,14 @@ export const Board: React.FC = () => {
                 <ListItemIcon>
                   {allTasksMinimized ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
                 </ListItemIcon>
-                <ListItemText>{allTasksMinimized ? 'Expandir tareas' : 'Minimizar tareas'}</ListItemText>
+                <ListItemText>{allTasksMinimized ? t('board.expandTasks') : t('board.minimizeTasks')}</ListItemText>
               </MenuItem>
             )}
             <MenuItem onClick={toggleTextSize} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
               <ListItemIcon>
                 {smallText ? <TextIncreaseIcon fontSize="small" /> : <TextDecreaseIcon fontSize="small" />}
               </ListItemIcon>
-              <ListItemText>{smallText ? 'Texto normal' : 'Texto compacto'}</ListItemText>
+              <ListItemText>{smallText ? t('board.normalText') : t('board.compactText')}</ListItemText>
             </MenuItem>
             <MenuItem
               onClick={() => setShowHiddenTasks((currentValue) => !currentValue)}
@@ -658,7 +662,7 @@ export const Board: React.FC = () => {
               <ListItemIcon>
                 {showHiddenTasks ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
               </ListItemIcon>
-              <ListItemText>{showHiddenTasks ? 'Ocultar tareas ocultas' : 'Mostrar tareas ocultas'}</ListItemText>
+              <ListItemText>{showHiddenTasks ? t('board.hideHiddenTasks') : t('board.showHiddenTasks')}</ListItemText>
               <Switch
                 edge="end"
                 checked={showHiddenTasks}
@@ -677,7 +681,7 @@ export const Board: React.FC = () => {
                 <ListItemIcon>
                   {showArchivedColumn ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
                 </ListItemIcon>
-                <ListItemText>{showArchivedColumn ? 'Ocultar archivadas' : 'Mostrar archivadas'}</ListItemText>
+                <ListItemText>{showArchivedColumn ? t('board.hideArchived') : t('board.showArchived')}</ListItemText>
                 <Switch
                   edge="end"
                   checked={showArchivedColumn}
@@ -698,7 +702,7 @@ export const Board: React.FC = () => {
               startIcon={<AddIcon />}
               onClick={() => setIsAddingColumn(true)}
             >
-              Nueva Columna
+              {t('board.newColumn')}
             </Button>
           )}
         </div>
@@ -819,17 +823,17 @@ export const Board: React.FC = () => {
         sx={getDialogSx(darkMode)}
       >
         <DialogTitle sx={getDialogTitleSx(darkMode)}>
-          Nueva Columna {viewMode === 'presentation' ? 'de Presentación' : ''}
+          {viewMode === 'presentation' ? t('board.newPresentationColumn') : t('board.newColumn')}
         </DialogTitle>
         <DialogContent sx={getDialogContentSx(darkMode)}>
           <DialogContentText sx={getDialogContentTextSx(darkMode)}>
-            Ingresa un título para la nueva columna.
+            {t('board.columnDialogText')}
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
             id="columnTitle"
-            label="Título"
+            label={t('board.columnTitle')}
             type="text"
             fullWidth
             variant="outlined"
@@ -843,10 +847,10 @@ export const Board: React.FC = () => {
         </DialogContent>
         <DialogActions sx={getDialogActionsSx(darkMode)}>
           <Button onClick={() => setIsAddingColumn(false)} variant="outlined" sx={secondaryDialogButtonSx}>
-            Cancelar
+            {t('board.cancel')}
           </Button>
           <Button onClick={handleAddColumn} variant="contained" color="primary" sx={getPrimaryDialogButtonSx(darkMode)}>
-            Crear
+            {t('board.create')}
           </Button>
         </DialogActions>
       </Dialog>

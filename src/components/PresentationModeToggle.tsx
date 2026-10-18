@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import SlideshowIcon from '@mui/icons-material/Slideshow';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Tooltip from '@mui/material/Tooltip';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PresentationModeToggleProps {
   viewMode: BoardViewMode;
@@ -15,9 +16,10 @@ export const PresentationModeToggle: React.FC<PresentationModeToggleProps> = ({
   onToggle 
 }) => {
   const isPresentation = viewMode === 'presentation';
+  const { t } = useLanguage();
   
   return (
-    <Tooltip title={isPresentation ? "Volver a modo normal" : "Cambiar a modo presentación"}>
+    <Tooltip title={isPresentation ? t('view.presentationOff') : t('view.presentationOn')}>
       <Button
         variant={isPresentation ? "outlined" : "contained"}
         color={isPresentation ? "secondary" : "primary"}
@@ -25,7 +27,7 @@ export const PresentationModeToggle: React.FC<PresentationModeToggleProps> = ({
         onClick={onToggle}
         sx={{ ml: 1 }}
       >
-        {isPresentation ? "Modo Normal" : "Modo Presentación"}
+        {isPresentation ? t('view.normal') : t('view.presentation')}
       </Button>
     </Tooltip>
   );

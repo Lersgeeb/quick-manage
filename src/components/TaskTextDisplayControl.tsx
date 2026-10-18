@@ -5,6 +5,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
+import { useLanguage } from '../contexts/LanguageContext';
 import { TASK_TEXT_DISPLAY_OPTIONS, TaskTextDisplayMode } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -18,6 +19,7 @@ export const TaskTextDisplayControl: React.FC<TaskTextDisplayControlProps> = ({
   onDisplayModeChange
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     onDisplayModeChange(event.target.value as TaskTextDisplayMode);
@@ -45,13 +47,13 @@ export const TaskTextDisplayControl: React.FC<TaskTextDisplayControlProps> = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <TextFieldsIcon sx={{ mr: 0.5, fontSize: 18 }} />
-          Texto a mostrar
+          {t('filters.textDisplay')}
         </Box>
       </InputLabel>
       <Select
         labelId="task-text-display-label"
         value={displayMode}
-        label=".......Texto a mostrar"
+        label={`.......${t('filters.textDisplay')}`}
         onChange={handleChange}
         sx={{
           '.MuiOutlinedInput-notchedOutline': {
@@ -73,7 +75,7 @@ export const TaskTextDisplayControl: React.FC<TaskTextDisplayControlProps> = ({
       >
         {TASK_TEXT_DISPLAY_OPTIONS.map((option) => (
           <MenuItem key={option.value} value={option.value} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
-            {option.label}
+            {t(option.label)}
           </MenuItem>
         ))}
       </Select>

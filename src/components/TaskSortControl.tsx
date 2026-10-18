@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import SortIcon from '@mui/icons-material/Sort';
+import { useLanguage } from '../contexts/LanguageContext';
 import { TASK_SORT_OPTIONS, TaskSortField } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -24,6 +25,7 @@ export const TaskSortControl: React.FC<TaskSortControlProps> = ({
   onSortDirectionChange
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     onSortFieldChange(event.target.value as TaskSortField);
@@ -51,13 +53,13 @@ export const TaskSortControl: React.FC<TaskSortControlProps> = ({
         >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <SortIcon sx={{ mr: 0.5, fontSize: 18 }} />
-            Ordenar tareas por
+            {t('filters.sortTasks')}
           </Box>
         </InputLabel>
         <Select
           labelId="task-sort-label"
           value={sortField}
-          label=".......Ordenar tareas por"
+          label={`.......${t('filters.sortTasks')}`}
           onChange={handleChange}
           sx={{
             '.MuiOutlinedInput-notchedOutline': {
@@ -79,7 +81,7 @@ export const TaskSortControl: React.FC<TaskSortControlProps> = ({
         >
           {TASK_SORT_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={option.value} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
-              {option.label}
+              {t(option.label)}
             </MenuItem>
           ))}
         </Select>
@@ -96,7 +98,7 @@ export const TaskSortControl: React.FC<TaskSortControlProps> = ({
           whiteSpace: 'nowrap'
         }}
       >
-        {sortDirection === 'asc' ? 'ASC' : 'DES'}
+        {sortDirection === 'asc' ? t('filters.sortAsc') : t('filters.sortDesc')}
       </Button>
     </div>
   );

@@ -8,6 +8,7 @@ import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Comment, Column, Task, TaskTextDisplayMode, getTaskPriorityOption } from '../types';
 import { TagBadge } from './TagBadge';
 
@@ -73,6 +74,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
   onEditTask,
   onAddTask
 }) => {
+  const { t } = useLanguage();
   const taskEntries = useMemo(
     () => columns.flatMap(column => column.tasks.map(task => ({ column, task }))),
     [columns]
@@ -113,24 +115,28 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
   const summaryCards = [
     {
       label: 'Visibles',
+      labelKey: 'presentation.visible',
       value: totalTasks,
       icon: <InsightsOutlinedIcon fontSize="small" />,
       accent: darkMode ? 'from-sky-500/25 to-cyan-400/10' : 'from-sky-100 to-cyan-50'
     },
     {
       label: 'En progreso',
+      labelKey: 'presentation.inProgress',
       value: inProgressTasks,
       icon: <TrendingUpOutlinedIcon fontSize="small" />,
       accent: darkMode ? 'from-indigo-500/25 to-blue-400/10' : 'from-indigo-100 to-blue-50'
     },
     {
       label: 'Con siguiente paso',
+      labelKey: 'presentation.withNextStep',
       value: pendingNextSteps,
       icon: <PlaylistAddCheckCircleOutlinedIcon fontSize="small" />,
       accent: darkMode ? 'from-emerald-500/25 to-green-400/10' : 'from-emerald-100 to-green-50'
     },
     {
       label: 'Alta prioridad',
+      labelKey: 'presentation.highPriority',
       value: riskTasks,
       icon: <WarningAmberRoundedIcon fontSize="small" />,
       accent: darkMode ? 'from-amber-500/25 to-orange-400/10' : 'from-amber-100 to-orange-50'
@@ -144,19 +150,19 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
           <div>
             <div className={`mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${darkMode ? 'bg-sky-500/15 text-sky-200' : 'bg-sky-100 text-sky-700'}`}>
               <TaskAltOutlinedIcon sx={{ fontSize: 16 }} />
-              Vista ágil de seguimiento
+              {t('presentation.badge')}
             </div>
-            <h2 className="text-3xl font-semibold tracking-tight">Pulso de actividades</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">{t('presentation.title')}</h2>
             <p className={`mt-2 max-w-3xl text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-              Diseñada para revisar el flujo del trabajo, detectar riesgos y dejar claros los siguientes pasos sin perder el contexto operativo.
+              {t('presentation.description')}
             </p>
           </div>
 
           <div className={`rounded-2xl border px-4 py-3 text-sm ${darkMode ? 'border-slate-700 bg-slate-900/60 text-slate-200' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
-            <div className="font-semibold">Progreso visible</div>
+            <div className="font-semibold">{t('presentation.progress')}</div>
             <div className="mt-1 text-2xl font-bold">{completedTasks} / {totalTasks}</div>
             <div className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              tareas en columnas de cierre
+              {t('presentation.progressCaption')}
             </div>
           </div>
         </div>
@@ -171,7 +177,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                 {card.icon}
               </div>
               <div className="text-2xl font-bold">{card.value}</div>
-              <div className={`mt-1 text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{card.label}</div>
+              <div className={`mt-1 text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{t(card.labelKey)}</div>
             </div>
           ))}
         </div>
@@ -181,8 +187,8 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
         <div className={`rounded-3xl border p-4 ${darkMode ? 'border-slate-700 bg-slate-800/60' : 'border-slate-200 bg-white'}`}>
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-semibold">Enfoque inmediato</h3>
-              <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Lo más importante para mover hoy</p>
+              <h3 className="text-lg font-semibold">{t('presentation.immediateFocus')}</h3>
+              <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.immediateFocusCaption')}</p>
             </div>
             <WarningAmberRoundedIcon className={darkMode ? 'text-amber-300' : 'text-amber-500'} />
           </div>
@@ -203,7 +209,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                       <div className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{column.title}</div>
                     </div>
                     <div className="rounded-full px-2 py-1 text-xs font-semibold" style={{ backgroundColor: `${priority.color}20`, color: priority.color }}>
-                      {priority.label}
+                      {t(priority.label)}
                     </div>
                   </div>
                   {task.nextStep?.trim() && (
@@ -215,7 +221,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
               );
             }) : (
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
-                No hay tareas prioritarias visibles con los filtros actuales.
+                {t('presentation.noPriorityTasks')}
               </div>
             )}
           </div>
@@ -224,8 +230,8 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
         <div className={`rounded-3xl border p-4 ${darkMode ? 'border-slate-700 bg-slate-800/60' : 'border-slate-200 bg-white'}`}>
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-semibold">Siguientes pasos activos</h3>
-              <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Acciones concretas para no frenar el flujo</p>
+              <h3 className="text-lg font-semibold">{t('presentation.activeNextSteps')}</h3>
+              <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.activeNextStepsCaption')}</p>
             </div>
             <PlaylistAddCheckCircleOutlinedIcon className={darkMode ? 'text-emerald-300' : 'text-emerald-500'} />
           </div>
@@ -241,7 +247,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                     <div className="font-semibold">{task.title}</div>
                     <div className={`mt-1 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{column.title}</div>
                   </div>
-                  <Tooltip title="Gestionar siguiente paso">
+                  <Tooltip title={t('presentation.manageNextStep')}>
                     <IconButton size="small" onClick={() => onManageNextStep(task.id)} sx={{ color: darkMode ? '#86efac' : '#059669' }}>
                       <PlaylistAddCheckCircleOutlinedIcon fontSize="small" />
                     </IconButton>
@@ -253,7 +259,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
               </div>
             )) : (
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
-                No hay siguientes pasos definidos para las tareas visibles.
+                {t('presentation.noNextSteps')}
               </div>
             )}
           </div>
@@ -272,7 +278,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                 <div>
                   <div className="text-lg font-semibold">{column.title}</div>
                   <div className={`mt-1 text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {columnTaskCount} actividad{columnTaskCount === 1 ? '' : 'es'}
+                    {t('presentation.activityCount', { count: columnTaskCount })}
                   </div>
                 </div>
                 <button
@@ -280,7 +286,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                   onClick={() => onAddTask(column.id)}
                   className={`rounded-full px-3 py-1 text-sm font-medium transition ${darkMode ? 'bg-slate-900/70 text-slate-100 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                 >
-                  + Tarea
+                  {t('presentation.addTask')}
                 </button>
               </div>
 
@@ -300,7 +306,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                           <div className="flex flex-wrap items-center gap-2">
                             <h4 className={`font-semibold ${smallText ? 'text-sm' : 'text-base'}`}>{task.title}</h4>
                             <span className="rounded-full px-2 py-1 text-[11px] font-semibold" style={{ backgroundColor: `${priority.color}20`, color: priority.color }}>
-                              {priority.label}
+                              {t(priority.label)}
                             </span>
                           </div>
                           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -314,17 +320,17 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                         </div>
 
                         <div className="flex items-center gap-1">
-                          <Tooltip title="Detalles">
+                          <Tooltip title={t('presentation.details')}>
                             <IconButton size="small" onClick={() => onViewDetails(task.id)} sx={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
                               <RemoveRedEyeOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Siguiente paso">
+                          <Tooltip title={t('presentation.manageNextStep')}>
                             <IconButton size="small" onClick={() => onManageNextStep(task.id)} sx={{ color: darkMode ? '#86efac' : '#059669' }}>
                               <PlaylistAddCheckCircleOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Editar">
+                          <Tooltip title={t('task.edit')}>
                             <IconButton size="small" onClick={() => onEditTask(task.id)} sx={{ color: darkMode ? '#93c5fd' : '#2563eb' }}>
                               <EditOutlinedIcon fontSize="small" />
                             </IconButton>
@@ -335,7 +341,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                       {displayText && (
                         <div className={`mt-4 rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-700'}`}>
                           <div className={`mb-1 text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            {textDisplayMode === 'description' ? 'Descripción' : textDisplayMode === 'nextStep' ? 'Siguiente paso' : 'Último comentario'}
+                            {textDisplayMode === 'description' ? t('presentation.displayDescription') : textDisplayMode === 'nextStep' ? t('presentation.displayNextStep') : t('presentation.displayLastComment')}
                           </div>
                           <p className={`line-clamp-3 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'}`}>
                             {displayText}
@@ -345,15 +351,15 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
 
                       <div className="mt-4 grid gap-2 md:grid-cols-2">
                         <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
-                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Siguiente paso</div>
+                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayNextStep')}</div>
                           <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${task.nextStep?.trim() ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
-                            {task.nextStep?.trim() || 'Sin definir'}
+                            {task.nextStep?.trim() || t('presentation.notDefined')}
                           </p>
                         </div>
                         <div className={`rounded-2xl px-3 py-2 ${darkMode ? 'bg-slate-800/60' : 'bg-white'}`}>
-                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Último comentario</div>
+                          <div className={`text-[11px] uppercase tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{t('presentation.displayLastComment')}</div>
                           <p className={`mt-1 line-clamp-2 whitespace-pre-wrap ${smallText ? 'text-xs' : 'text-sm'} ${latestComment ? (darkMode ? 'text-slate-200' : 'text-slate-700') : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
-                            {latestComment || 'Sin comentarios'}
+                            {latestComment || t('presentation.noCommentsShort')}
                           </p>
                         </div>
                       </div>
@@ -361,7 +367,7 @@ export const PresentationBoard: React.FC<PresentationBoardProps> = ({
                   );
                 }) : (
                   <div className={`rounded-2xl border border-dashed p-4 text-sm ${darkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-500'}`}>
-                    Sin actividades para mostrar con los filtros actuales.
+                    {t('presentation.noActivities')}
                   </div>
                 )}
               </div>

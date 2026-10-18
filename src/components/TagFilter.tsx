@@ -5,6 +5,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface TagFilterProps {
@@ -19,6 +20,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
   onTagSelect 
 }) => {
   const { darkMode } = useTheme();
+  const { t } = useLanguage();
   
   const handleChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
@@ -57,13 +59,13 @@ export const TagFilter: React.FC<TagFilterProps> = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <FilterListIcon sx={{ mr: 0.5, fontSize: 18 }} />
-          Filtrar por etiqueta
+          {t('filters.tag')}
         </Box>
       </InputLabel>
       <Select
         labelId="tag-filter-label"
         value={displayValue}
-        label=".......Filtrar por etiqueta"
+        label={`.......${t('filters.tag')}`}
         onChange={handleChange}
         className={darkModeClasses.select}
         sx={{
@@ -85,7 +87,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
         }}
       >
         <MenuItem value="all" className={darkModeClasses.menuItem}>
-          <em>Todas las etiquetas</em>
+          <em>{t('filters.allTags')}</em>
         </MenuItem>
         {tags.map((tagInfo) => (
           <MenuItem key={tagInfo.tag} value={tagInfo.tag} className={darkModeClasses.menuItem}>
