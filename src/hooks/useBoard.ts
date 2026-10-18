@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Board, Column, Task, Comment, BoardViewMode, DEFAULT_TASK_PRIORITY, TaskPriority } from '../types';
 import { useStorage } from './useStorage';
 
+const ARCHIVE_COLUMN_TITLE = 'Archivadas';
+
 const isTaskPriority = (value: unknown): value is TaskPriority => {
   return value === 'low' || value === 'medium' || value === 'high' || value === 'critical';
 };
@@ -16,13 +18,16 @@ const normalizeTask = (task: Task): Task => {
     tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
     priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
     reference: taskData.reference || '',
-    nextStep: typeof taskData.nextStep === 'string' ? taskData.nextStep : ''
+    nextStep: typeof taskData.nextStep === 'string' ? taskData.nextStep : '',
+    archivedFromColumnId: typeof taskData.archivedFromColumnId === 'string' ? taskData.archivedFromColumnId : undefined,
+    archivedAt: typeof taskData.archivedAt === 'string' ? taskData.archivedAt : undefined
   };
 };
 
 const normalizeColumns = (columns: Column[] = []): Column[] => {
   return columns.map(column => ({
     ...column,
+    isArchive: Boolean(column.isArchive),
     tasks: column.tasks.map(normalizeTask)
   }));
 };
@@ -71,6 +76,37 @@ export const useBoard = () => {
       saveViewMode(viewMode);
     }
   }, [viewMode, isLoading]);
+
+  const getOrCreateArchiveColumn = (columns: Column[]) => {
+    const existingArchiveColumn = columns.find(column => column.isArchive);
+
+    if (existingArchiveColumn) {
+      return {
+        archiveColumn: existingArchiveColumn,
+        columns
+      };
+    }
+
+    const archiveColumn: Column = {
+      id: uuidv4(),
+      title: ARCHIVE_COLUMN_TITLE,
+      tasks: [],
+      order: columns.length,
+      isArchive: true
+    };
+
+    return {
+      archiveColumn,
+      columns: [...columns, archiveColumn]
+    };
+  };
+
+  const getFirstActiveColumn = (columns: Column[]) => {
+    return columns
+      .slice()
+      .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
+      .find(column => !column.isArchive);
+  };
 
   const toggleViewMode = () => {
     const newMode = viewMode === 'normal' ? 'presentation' : 'normal';
@@ -129,7 +165,8 @@ export const useBoard = () => {
       id: uuidv4(),
       title,
       tasks: [],
-      order: getCurrentColumns().length
+      order: getCurrentColumns().length,
+      isArchive: false
     };
     
     if (viewMode === 'normal') {
@@ -168,12 +205,12 @@ export const useBoard = () => {
     if (viewMode === 'normal') {
       setBoard(prev => ({
         ...prev,
-        columns: prev.columns.filter(col => col.id !== columnId)
+        columns: prev.columns.filter(col => col.id !== columnId || col.isArchive)
       }));
     } else {
       setBoard(prev => ({
         ...prev,
-        presentationColumns: (prev.presentationColumns || []).filter(col => col.id !== columnId)
+        presentationColumns: (prev.presentationColumns || []).filter(col => col.id !== columnId || col.isArchive)
       }));
     }
   };
@@ -191,6 +228,8 @@ export const useBoard = () => {
       priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
       reference: taskData.reference || '',
       nextStep: typeof taskData.nextStep === 'string' ? taskData.nextStep : '',
+      archivedFromColumnId: undefined,
+      archivedAt: undefined,
       id: uuidv4(),
       columnId,
       order: 0, // Will be updated in the next step
@@ -300,7 +339,21 @@ export const useBoard = () => {
           if (col.id === sourceColId) {
             const task = col.tasks.find(t => t.id === taskId);
             if (task) {
-              taskToMove = { ...task, columnId: destColId, updatedAt: new Date().toISOString() };
+              const destinationColumn = prev.columns.find(column => column.id === destColId);
+              const sourceColumn = prev.columns.find(column => column.id === sourceColId);
+              const now = new Date().toISOString();
+
+              taskToMove = {
+                ...task,
+                columnId: destColId,
+                archivedFromColumnId: destinationColumn?.isArchive
+                  ? sourceColumn?.isArchive
+                    ? task.archivedFromColumnId
+                    : sourceColId
+                  : undefined,
+                archivedAt: destinationColumn?.isArchive ? now : undefined,
+                updatedAt: now
+              };
             }
             return {
               ...col,
@@ -544,6 +597,110 @@ export const useBoard = () => {
     updateTask(taskId, { nextStep: nextStep.trim() });
   };
 
+  const archiveTask = (taskId: string) => {
+    const now = new Date().toISOString();
+
+    setBoard(prev => {
+      const sourceColumn = prev.columns.find(column => column.tasks.some(task => task.id === taskId));
+
+      if (!sourceColumn || sourceColumn.isArchive) {
+        return prev;
+      }
+
+      const taskToArchive = sourceColumn.tasks.find(task => task.id === taskId);
+      if (!taskToArchive) {
+        return prev;
+      }
+
+      const { archiveColumn, columns } = getOrCreateArchiveColumn(prev.columns);
+
+      const updatedColumns = columns.map(column => {
+        if (column.id === sourceColumn.id) {
+          return {
+            ...column,
+            tasks: column.tasks
+              .filter(task => task.id !== taskId)
+              .map((task, index) => ({ ...task, order: index }))
+          };
+        }
+
+        if (column.id === archiveColumn.id) {
+          const archivedTask: Task = {
+            ...taskToArchive,
+            columnId: archiveColumn.id,
+            archivedFromColumnId: sourceColumn.id,
+            archivedAt: now,
+            updatedAt: now
+          };
+
+          return {
+            ...column,
+            tasks: [...column.tasks, archivedTask].map((task, index) => ({ ...task, order: index }))
+          };
+        }
+
+        return column;
+      });
+
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
+  const unarchiveTask = (taskId: string) => {
+    const now = new Date().toISOString();
+
+    setBoard(prev => {
+      const archiveColumn = prev.columns.find(column => column.isArchive && column.tasks.some(task => task.id === taskId));
+
+      if (!archiveColumn) {
+        return prev;
+      }
+
+      const taskToRestore = archiveColumn.tasks.find(task => task.id === taskId);
+      if (!taskToRestore) {
+        return prev;
+      }
+
+      const preferredTargetColumn = prev.columns.find(column => column.id === taskToRestore.archivedFromColumnId && !column.isArchive);
+      const fallbackTargetColumn = getFirstActiveColumn(prev.columns);
+      const targetColumn = preferredTargetColumn || fallbackTargetColumn;
+
+      if (!targetColumn) {
+        return prev;
+      }
+
+      const updatedColumns = prev.columns.map(column => {
+        if (column.id === archiveColumn.id) {
+          return {
+            ...column,
+            tasks: column.tasks
+              .filter(task => task.id !== taskId)
+              .map((task, index) => ({ ...task, order: index }))
+          };
+        }
+
+        if (column.id === targetColumn.id) {
+          const restoredTask: Task = {
+            ...taskToRestore,
+            columnId: targetColumn.id,
+            archivedFromColumnId: undefined,
+            archivedAt: undefined,
+            updatedAt: now
+          };
+
+          return {
+            ...column,
+            tasks: [...column.tasks, restoredTask].map((task, index) => ({ ...task, order: index }))
+          };
+        }
+
+        return column;
+      });
+
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
   const completeTaskNextStep = (taskId: string, nextStepText?: string) => {
     const now = new Date().toISOString();
     const trimmedNextStepText = nextStepText?.trim();
@@ -624,6 +781,8 @@ export const useBoard = () => {
     updateComment,
     deleteComment,
     setTaskNextStep,
+    archiveTask,
+    unarchiveTask,
     completeTaskNextStep,
     toggleTaskVisibility
   };

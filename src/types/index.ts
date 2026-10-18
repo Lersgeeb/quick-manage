@@ -46,6 +46,8 @@ export interface Task {
   priority: TaskPriority;
   reference: string; // Nuevo campo para referencia
   nextStep?: string;
+  archivedFromColumnId?: string;
+  archivedAt?: string;
   hidden?: boolean;
   columnId: string;
   order: number;
@@ -59,6 +61,7 @@ export interface Column {
   title: string;
   tasks: Task[];
   order: number;
+  isArchive?: boolean;
 }
 
 export interface Board {

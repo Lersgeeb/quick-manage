@@ -12,6 +12,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 
 interface ColumnProps {
   column: ColumnType;
@@ -21,6 +22,7 @@ interface ColumnProps {
   onDeleteTask: (taskId: string) => void;
   onViewDetails: (taskId: string) => void; // Nueva prop para ver detalles
   onManageNextStep: (taskId: string) => void;
+  onToggleArchive: (taskId: string) => void;
   onUpdateColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
   onMoveLeft: (columnId: string) => void;
@@ -42,6 +44,7 @@ export const Column: React.FC<ColumnProps> = ({
   onDeleteTask,
   onViewDetails, // Nueva prop
   onManageNextStep,
+  onToggleArchive,
   onUpdateColumn,
   onDeleteColumn,
   onMoveLeft,
@@ -57,6 +60,7 @@ export const Column: React.FC<ColumnProps> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isArchiveColumn = Boolean(column.isArchive);
   const priorityCounts = useMemo(
     () =>
       TASK_PRIORITY_OPTIONS.map(option => ({
@@ -117,6 +121,12 @@ export const Column: React.FC<ColumnProps> = ({
           <>
             <div className="flex items-center space-x-2">
               <h2 className="font-bold text-gray-700 dark:text-gray-200">{column.title}</h2>
+              {isArchiveColumn && (
+                <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  <ArchiveOutlinedIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                  Archivo
+                </span>
+              )}
               <div className='bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded-xl'>{tasks.length}</div>
             </div>
             <div className="flex items-center space-x-1">
@@ -146,18 +156,22 @@ export const Column: React.FC<ColumnProps> = ({
               open={Boolean(anchorEl)}
               onClose={handleCloseMenu}
             >
-              <MenuItem onClick={handleEditColumnTitle}>
-                <ListItemIcon>
-                  <EditIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Editar título</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleDeleteColumn}>
-                <ListItemIcon>
-                  <DeleteIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Eliminar columna</ListItemText>
-              </MenuItem>
+              {!isArchiveColumn && (
+                <MenuItem onClick={handleEditColumnTitle}>
+                  <ListItemIcon>
+                    <EditIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Editar título</ListItemText>
+                </MenuItem>
+              )}
+              {!isArchiveColumn && (
+                <MenuItem onClick={handleDeleteColumn}>
+                  <ListItemIcon>
+                    <DeleteIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Eliminar columna</ListItemText>
+                </MenuItem>
+              )}
             </Menu>
           </>
         )}
@@ -181,6 +195,7 @@ export const Column: React.FC<ColumnProps> = ({
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}
                 onManageNextStep={onManageNextStep}
+                onToggleArchive={onToggleArchive}
                 onToggleVisibility={onToggleTaskVisibility}
                 onToggleMinimize={onToggleMinimize}
                 isMinimized={minimizedTasks.has(task.id)}
@@ -195,12 +210,14 @@ export const Column: React.FC<ColumnProps> = ({
         )}
       </Droppable>
 
-      <button
-        onClick={() => onAddTask(column.id)}
-        className="mt-2 w-full py-2 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 border border-blue-300 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
-      >
-        <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
-      </button>
+      {!isArchiveColumn && (
+        <button
+          onClick={() => onAddTask(column.id)}
+          className="mt-2 w-full py-2 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-300 border border-blue-300 dark:border-blue-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 flex items-center justify-center transition-colors duration-200"
+        >
+          <AddIcon fontSize="small" className="mr-1" /> Añadir tarea
+        </button>
+      )}
 
       <div className="mt-2 grid grid-cols-4 gap-2">
         {priorityCounts.map((priority) => (

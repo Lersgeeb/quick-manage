@@ -9,6 +9,7 @@ import { TaskTextDisplayControl } from './TaskTextDisplayControl';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { TaskNextStepModal } from './TaskNextStepModal';
+import { PresentationBoard } from './PresentationBoard';
 import { ThemeToggle } from './ThemeToggle';
 import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
@@ -24,15 +25,21 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
+import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import TextDecreaseIcon from '@mui/icons-material/TextDecrease';
 import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
+import ViewQuiltOutlinedIcon from '@mui/icons-material/ViewQuiltOutlined';
 import Tooltip from '@mui/material/Tooltip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import {
   getDialogActionsSx,
   getDialogContentSx,
@@ -65,6 +72,8 @@ export const Board: React.FC = () => {
     updateComment,
     deleteComment,
     setTaskNextStep,
+    archiveTask,
+    unarchiveTask,
     completeTaskNextStep,
     toggleTaskVisibility
   } = useBoard();
@@ -78,9 +87,11 @@ export const Board: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [textDisplayMode, setTextDisplayMode] = useState<TaskTextDisplayMode>('description');
   const [showHiddenTasks, setShowHiddenTasks] = useState(false);
+  const [showArchivedColumn, setShowArchivedColumn] = useState(false);
   const [minimizedTasks, setMinimizedTasks] = useState<Set<string>>(new Set());
   const [allTasksMinimized, setAllTasksMinimized] = useState(false);
   const [smallText, setSmallText] = useState(false);
+  const [displayMenuAnchorEl, setDisplayMenuAnchorEl] = useState<null | HTMLElement>(null);
   
   // Estado para el modal de task form
   const [taskModal, setTaskModal] = useState<{
@@ -360,7 +371,9 @@ export const Board: React.FC = () => {
     const tagsMap = new Map<string, string>(); // tag -> color
     
     // Use all tasks from normal mode for tags
-    board.columns.forEach(column => {
+    board.columns
+      .filter(column => showArchivedColumn || !column.isArchive)
+      .forEach(column => {
       column.tasks.forEach(task => {
         // Handle both new and legacy properties
         const tag = task.tag || (task as any).client || '';
@@ -377,7 +390,7 @@ export const Board: React.FC = () => {
       tag,
       color: tagsMap.get(tag) || '#f87171'
     })).sort((a, b) => a.tag.localeCompare(b.tag));
-  }, [board]);
+  }, [board, showArchivedColumn]);
   
   // Filter tasks by selected tag and visibility
   const taskMatchesFilters = (task: Task) => {
@@ -437,7 +450,9 @@ export const Board: React.FC = () => {
       // Get all filtered tasks from normal mode
       const allFilteredTasks: Task[] = [];
       
-      board.columns.forEach(normalCol => {
+      board.columns
+        .filter(normalCol => !normalCol.isArchive)
+        .forEach(normalCol => {
         const tasksForColumn = normalCol.tasks.filter(taskMatchesFilters);
         
         allFilteredTasks.push(...tasksForColumn);
@@ -471,17 +486,29 @@ export const Board: React.FC = () => {
     }
     
     // For normal mode, just return the columns
-    return currentColumns;
-  }, [board, viewMode, selectedTag, selectedPriority, getCurrentColumns, showHiddenTasks]);
+    return showArchivedColumn
+      ? currentColumns
+      : currentColumns.filter(column => !column.isArchive);
+  }, [board, viewMode, selectedTag, selectedPriority, getCurrentColumns, showHiddenTasks, showArchivedColumn]);
 
-  const filteredTasksForExport = useMemo(() => {
-    return columnsToRender
+  const visibleBoardColumns = useMemo(() => {
+    return board.columns
       .slice()
       .sort((firstColumn, secondColumn) => firstColumn.order - secondColumn.order)
-      .flatMap(column => getFilteredTasks(
-        column.tasks.slice().sort((firstTask, secondTask) => firstTask.order - secondTask.order)
-      ));
-  }, [columnsToRender, showHiddenTasks, selectedTag, selectedPriority]);
+      .filter(column => showArchivedColumn || !column.isArchive)
+      .map(column => ({
+        ...column,
+        tasks: sortTasks(getFilteredTasks(column.tasks))
+      }));
+  }, [board.columns, showHiddenTasks, showArchivedColumn, selectedTag, selectedPriority, sortField, sortDirection]);
+
+  const presentationColumnsData = useMemo(() => {
+    return visibleBoardColumns.filter(column => !column.isArchive);
+  }, [visibleBoardColumns]);
+
+  const filteredTasksForExport = useMemo(() => {
+    return visibleBoardColumns.flatMap(column => column.tasks);
+  }, [visibleBoardColumns]);
 
   // Toggle minimization for a single task
   const toggleTaskMinimization = (taskId: string) => {
@@ -553,6 +580,29 @@ export const Board: React.FC = () => {
     toggleTaskVisibility(taskId);
   };
 
+  const handleOpenDisplayMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setDisplayMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseDisplayMenu = () => {
+    setDisplayMenuAnchorEl(null);
+  };
+
+  const handleArchiveToggle = (taskId: string) => {
+    const task = findTaskById(taskId);
+
+    if (!task) {
+      return;
+    }
+
+    if (task.archivedAt) {
+      unarchiveTask(taskId);
+      return;
+    }
+
+    archiveTask(taskId);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen dark:bg-gray-900">
@@ -570,15 +620,87 @@ export const Board: React.FC = () => {
         <div className="flex space-x-2 items-center">
           <ThemeToggle />
           <ImportExport board={board} filteredTasks={filteredTasksForExport} />
-          <PresentationModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
           <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddingColumn(true)}
+            onClick={handleOpenDisplayMenu}
+            variant="outlined"
+            color="secondary"
+            startIcon={<ViewQuiltOutlinedIcon />}
           >
-            Nueva Columna
+            Vista
           </Button>
+          <Menu
+            anchorEl={displayMenuAnchorEl}
+            open={Boolean(displayMenuAnchorEl)}
+            onClose={handleCloseDisplayMenu}
+            MenuListProps={{ dense: true }}
+            PaperProps={{
+              className: darkMode ? 'bg-gray-800 text-gray-100' : ''
+            }}
+          >
+            {viewMode === 'normal' && (
+              <MenuItem onClick={toggleAllTasksMinimization} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
+                <ListItemIcon>
+                  {allTasksMinimized ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
+                </ListItemIcon>
+                <ListItemText>{allTasksMinimized ? 'Expandir tareas' : 'Minimizar tareas'}</ListItemText>
+              </MenuItem>
+            )}
+            <MenuItem onClick={toggleTextSize} className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}>
+              <ListItemIcon>
+                {smallText ? <TextIncreaseIcon fontSize="small" /> : <TextDecreaseIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>{smallText ? 'Texto normal' : 'Texto compacto'}</ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => setShowHiddenTasks((currentValue) => !currentValue)}
+              className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}
+            >
+              <ListItemIcon>
+                {showHiddenTasks ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>{showHiddenTasks ? 'Ocultar tareas ocultas' : 'Mostrar tareas ocultas'}</ListItemText>
+              <Switch
+                edge="end"
+                checked={showHiddenTasks}
+                onChange={(event) => {
+                  event.stopPropagation();
+                  setShowHiddenTasks(event.target.checked);
+                }}
+                size="small"
+              />
+            </MenuItem>
+            {viewMode === 'normal' && (
+              <MenuItem
+                onClick={() => setShowArchivedColumn((currentValue) => !currentValue)}
+                className={darkMode ? 'text-gray-100 hover:bg-gray-700' : ''}
+              >
+                <ListItemIcon>
+                  {showArchivedColumn ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
+                </ListItemIcon>
+                <ListItemText>{showArchivedColumn ? 'Ocultar archivadas' : 'Mostrar archivadas'}</ListItemText>
+                <Switch
+                  edge="end"
+                  checked={showArchivedColumn}
+                  onChange={(event) => {
+                    event.stopPropagation();
+                    setShowArchivedColumn(event.target.checked);
+                  }}
+                  size="small"
+                />
+              </MenuItem>
+            )}
+          </Menu>
+          <PresentationModeToggle viewMode={viewMode} onToggle={toggleViewMode} />
+          {viewMode === 'normal' && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setIsAddingColumn(true)}
+            >
+              Nueva Columna
+            </Button>
+          )}
         </div>
       </div>
 
@@ -608,88 +730,57 @@ export const Board: React.FC = () => {
           />
         </div>
         
-        <div className="flex items-center space-x-2">
-          {/* Toggle for minimizing all tasks */}
-          <Tooltip title={allTasksMinimized ? "Expandir todas" : "Minimizar todas"}>
-            <Button 
-              onClick={toggleAllTasksMinimization}
-              size="small"
-              variant="outlined"
-              color="primary"
-              startIcon={allTasksMinimized ? <UnfoldMoreIcon /> : <UnfoldLessIcon />}
-            >
-              {allTasksMinimized ? "Expandir" : "Minimizar"}
-            </Button>
-          </Tooltip>
-          
-          {/* Toggle for text size */}
-          <Tooltip title={smallText ? "Texto normal" : "Texto pequeño"}>
-            <Button
-              onClick={toggleTextSize}
-              size="small"
-              variant="outlined"
-              color="secondary"
-              startIcon={smallText ? <TextIncreaseIcon /> : <TextDecreaseIcon />}
-            >
-              {smallText ? "Agrandar" : "Reducir"}
-            </Button>
-          </Tooltip>
-          
-          {/* Toggle for hidden tasks */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showHiddenTasks}
-                onChange={(e) => setShowHiddenTasks(e.target.checked)}
-                color="primary"
-                icon={<VisibilityOffIcon />}
-                checkedIcon={<VisibilityIcon />}
-              />
-            }
-            label={showHiddenTasks ? "Mostrando tareas ocultas" : "Tareas ocultas: OFF"}
-            sx={{ 
-              color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
-              '.MuiSwitch-track': {
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.3)' : undefined
-              }
-            }}
-          />
+        <div className="flex flex-wrap items-center gap-2">
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden">
-        <DragDropContext 
-          onDragEnd={handleDragEnd}
-          onDragStart={handleDragStart}
-        >
-          <div className="flex h-full w-full gap-0 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar">
-            {columnsToRender
-              .sort((a, b) => a.order - b.order)
-              .map((column) => (
-                <Column
-                  key={`${column.id}-${viewMode}`} // Add viewMode to key to force re-render when switching modes
-                  column={column}
-                  tasks={sortTasks(getFilteredTasks(column.tasks))}
-                  onAddTask={() => handleOpenAddTaskModal(column.id)}
-                  onEditTask={handleOpenEditTaskModal}
-                  onDeleteTask={deleteTask}
-                  onViewDetails={handleOpenDetailsModal}
-                  onManageNextStep={handleOpenNextStepModal}
-                  onUpdateColumn={updateColumn}
-                  onDeleteColumn={deleteColumn}
-                  onMoveLeft={moveColumnLeft}
-                  onMoveRight={moveColumnRight}
-                  onToggleTaskVisibility={handleToggleTaskVisibility}
-                  onToggleMinimize={toggleTaskMinimization}
-                  minimizedTasks={minimizedTasks}
-                  viewMode={viewMode}
-                  showHiddenTasks={showHiddenTasks}
-                  smallText={smallText}
-                  textDisplayMode={textDisplayMode}
-                />
-              ))}
-          </div>
-        </DragDropContext>
+        {viewMode === 'presentation' ? (
+          <PresentationBoard
+            columns={presentationColumnsData}
+            darkMode={darkMode}
+            textDisplayMode={textDisplayMode}
+            smallText={smallText}
+            onViewDetails={handleOpenDetailsModal}
+            onManageNextStep={handleOpenNextStepModal}
+            onEditTask={handleOpenEditTaskModal}
+            onAddTask={handleOpenAddTaskModal}
+          />
+        ) : (
+          <DragDropContext 
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+          >
+            <div className="flex h-full w-full gap-0 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar">
+              {columnsToRender
+                .sort((a, b) => a.order - b.order)
+                .map((column) => (
+                  <Column
+                    key={`${column.id}-${viewMode}`}
+                    column={column}
+                    tasks={sortTasks(getFilteredTasks(column.tasks))}
+                    onAddTask={() => handleOpenAddTaskModal(column.id)}
+                    onEditTask={handleOpenEditTaskModal}
+                    onDeleteTask={deleteTask}
+                    onViewDetails={handleOpenDetailsModal}
+                    onManageNextStep={handleOpenNextStepModal}
+                    onToggleArchive={handleArchiveToggle}
+                    onUpdateColumn={updateColumn}
+                    onDeleteColumn={deleteColumn}
+                    onMoveLeft={moveColumnLeft}
+                    onMoveRight={moveColumnRight}
+                    onToggleTaskVisibility={handleToggleTaskVisibility}
+                    onToggleMinimize={toggleTaskMinimization}
+                    minimizedTasks={minimizedTasks}
+                    viewMode={viewMode}
+                    showHiddenTasks={showHiddenTasks}
+                    smallText={smallText}
+                    textDisplayMode={textDisplayMode}
+                  />
+                ))}
+            </div>
+          </DragDropContext>
+        )}
       </div>
 
       {/* Modal para crear/editar tareas */}

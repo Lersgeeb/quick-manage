@@ -11,6 +11,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldMore';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
+import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -24,6 +26,7 @@ interface TaskProps {
   onDelete: (id: string) => void;
   onViewDetails: (id: string) => void;
   onManageNextStep: (id: string) => void;
+  onToggleArchive: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
   onToggleMinimize?: (id: string) => void;
   isMinimized?: boolean;
@@ -48,6 +51,7 @@ export const Task: React.FC<TaskProps> = ({
   onDelete, 
   onViewDetails,
   onManageNextStep,
+  onToggleArchive,
   onToggleVisibility,
   onToggleMinimize,
   isMinimized = false,
@@ -61,6 +65,7 @@ export const Task: React.FC<TaskProps> = ({
   const colorToShow = task.tagColor || (task as any).clientColor || '#f87171';
   const referenceToShow = task.reference || '';
   const isHidden = task.hidden || false;
+  const isArchived = Boolean(task.archivedAt);
   const priority = getTaskPriorityOption(task.priority);
   const textToShow = textDisplayMode === 'nextStep'
     ? task.nextStep || ''
@@ -166,6 +171,12 @@ export const Task: React.FC<TaskProps> = ({
                   </MenuItem>
                   {viewMode === 'normal' && (
                     <>
+                      <MenuItem onClick={() => handleAction(() => onToggleArchive(task.id))}>
+                        <ListItemIcon>
+                          {isArchived ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
+                        </ListItemIcon>
+                        <ListItemText>{isArchived ? "Desarchivar" : "Archivar"}</ListItemText>
+                      </MenuItem>
                       <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
                         <ListItemIcon>
                           {isHidden ? 
@@ -239,6 +250,12 @@ export const Task: React.FC<TaskProps> = ({
                     </MenuItem>
                     {viewMode === 'normal' && (
                       <>
+                        <MenuItem onClick={() => handleAction(() => onToggleArchive(task.id))}>
+                          <ListItemIcon>
+                            {isArchived ? <UnarchiveOutlinedIcon fontSize="small" /> : <ArchiveOutlinedIcon fontSize="small" />}
+                          </ListItemIcon>
+                          <ListItemText>{isArchived ? "Desarchivar" : "Archivar"}</ListItemText>
+                        </MenuItem>
                         <MenuItem onClick={() => handleAction(() => onToggleVisibility && onToggleVisibility(task.id))}>
                           <ListItemIcon>
                             {isHidden ? 
