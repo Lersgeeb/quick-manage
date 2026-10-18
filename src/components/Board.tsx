@@ -7,6 +7,7 @@ import { TagFilter } from './TagFilter';
 import { TaskSortControl } from './TaskSortControl';
 import { TaskFormModal } from './TaskFormModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
+import { TaskNextStepModal } from './TaskNextStepModal';
 import { ThemeToggle } from './ThemeToggle';
 import { PresentationModeToggle } from './PresentationModeToggle';
 import { useBoard } from '../hooks/useBoard';
@@ -62,6 +63,8 @@ export const Board: React.FC = () => {
     addComment,
     updateComment,
     deleteComment,
+    setTaskNextStep,
+    completeTaskNextStep,
     toggleTaskVisibility
   } = useBoard();
   
@@ -95,23 +98,65 @@ export const Board: React.FC = () => {
     task: null
   });
 
+  const [nextStepModal, setNextStepModal] = useState<{
+    open: boolean;
+    task: Task | null;
+  }>({
+    open: false,
+    task: null
+  });
+
+  const findTaskById = (taskId: string) => {
+    for (const column of board.columns) {
+      const task = column.tasks.find(item => item.id === taskId);
+      if (task) {
+        return task;
+      }
+    }
+
+    for (const column of getCurrentColumns()) {
+      const task = column.tasks.find(item => item.id === taskId);
+      if (task) {
+        return task;
+      }
+    }
+
+    return null;
+  };
+
+  const findTaskForEditing = (taskId: string) => {
+    for (const column of board.columns) {
+      const task = column.tasks.find(item => item.id === taskId);
+      if (task) {
+        return { task, columnId: column.id };
+      }
+    }
+
+    for (const column of getCurrentColumns()) {
+      const task = column.tasks.find(item => item.id === taskId);
+      if (task) {
+        return { task, columnId: column.id };
+      }
+    }
+
+    return null;
+  };
+
   // Efecto para actualizar la tarea en el modal de detalles cuando cambia el board
   useEffect(() => {
     if (detailsModal.open && detailsModal.task) {
-      // Buscar la tarea actualizada por ID
-      let updatedTask: Task | null = null;
-      
-      const currentColumns = getCurrentColumns();
-      currentColumns.forEach(col => {
-        const task = col.tasks.find(t => t.id === detailsModal.task?.id);
-        if (task) {
-          updatedTask = task;
-        }
-      });
-      
-      // Si se encuentra la tarea actualizada, actualizar el estado del modal
+      const updatedTask = findTaskById(detailsModal.task.id);
       if (updatedTask) {
         setDetailsModal({ open: true, task: updatedTask });
+      }
+    }
+  }, [board, viewMode]);
+
+  useEffect(() => {
+    if (nextStepModal.open && nextStepModal.task) {
+      const updatedTask = findTaskById(nextStepModal.task.id);
+      if (updatedTask) {
+        setNextStepModal({ open: true, task: updatedTask });
       }
     }
   }, [board, viewMode]);
@@ -123,50 +168,27 @@ export const Board: React.FC = () => {
 
   // Abrir modal para editar tarea
   const handleOpenEditTaskModal = (taskId: string) => {
-    // Buscar la tarea por ID
-    let taskToEdit: Task | undefined;
-    let columnId: string | undefined;
-    
-    const currentColumns = getCurrentColumns();
-    currentColumns.forEach(col => {
-      const task = col.tasks.find(t => t.id === taskId);
-      if (task) {
-        taskToEdit = task;
-        columnId = col.id;
-      }
-    });
-    
+    const taskToEdit = findTaskForEditing(taskId);
+
     if (taskToEdit) {
-      setTaskModal({ open: true, task: taskToEdit, columnId });
+      setTaskModal({ open: true, task: taskToEdit.task, columnId: taskToEdit.columnId });
     }
   };
 
   // Abrir modal de detalles
   const handleOpenDetailsModal = (taskId: string) => {
-    // Buscar la tarea por ID
-    let taskToView: Task | null = null;
-    
-    // En modo presentación, buscar la tarea en las columnas normales para tener todos los detalles
-    if (viewMode === 'presentation') {
-      board.columns.forEach(col => {
-        const task = col.tasks.find(t => t.id === taskId);
-        if (task) {
-          taskToView = task;
-        }
-      });
-    } else {
-      // En modo normal, buscar en las columnas actuales
-      const currentColumns = getCurrentColumns();
-      currentColumns.forEach(col => {
-        const task = col.tasks.find(t => t.id === taskId);
-        if (task) {
-          taskToView = task;
-        }
-      });
-    }
-    
+    const taskToView = findTaskById(taskId);
+
     if (taskToView) {
       setDetailsModal({ open: true, task: taskToView });
+    }
+  };
+
+  const handleOpenNextStepModal = (taskId: string) => {
+    const taskToManage = findTaskById(taskId);
+
+    if (taskToManage) {
+      setNextStepModal({ open: true, task: taskToManage });
     }
   };
 
@@ -178,6 +200,10 @@ export const Board: React.FC = () => {
   // Cerrar modal de detalles
   const handleCloseDetailsModal = () => {
     setDetailsModal({ open: false, task: null });
+  };
+
+  const handleCloseNextStepModal = () => {
+    setNextStepModal({ open: false, task: null });
   };
 
   // Manejar submit del formulario
@@ -254,6 +280,75 @@ export const Board: React.FC = () => {
         const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
         setDetailsModal({ open: true, task: updatedTask });
       }
+    }
+  };
+
+  const handleSaveNextStep = (taskId: string, nextStep: string) => {
+    const trimmedNextStep = nextStep.trim();
+    setTaskNextStep(taskId, trimmedNextStep);
+
+    if (detailsModal.open && detailsModal.task?.id === taskId) {
+      setDetailsModal({
+        open: true,
+        task: {
+          ...detailsModal.task,
+          nextStep: trimmedNextStep,
+          updatedAt: new Date().toISOString()
+        }
+      });
+    }
+
+    if (nextStepModal.open && nextStepModal.task?.id === taskId) {
+      setNextStepModal({
+        open: true,
+        task: {
+          ...nextStepModal.task,
+          nextStep: trimmedNextStep,
+          updatedAt: new Date().toISOString()
+        }
+      });
+    }
+  };
+
+  const handleCompleteNextStep = (taskId: string, nextStepText?: string) => {
+    const resolvedNextStep = nextStepText?.trim() || findTaskById(taskId)?.nextStep?.trim() || '';
+
+    if (!resolvedNextStep) {
+      return;
+    }
+
+    completeTaskNextStep(taskId, resolvedNextStep);
+
+    if (detailsModal.open && detailsModal.task?.id === taskId) {
+      const now = new Date().toISOString();
+      setDetailsModal({
+        open: true,
+        task: {
+          ...detailsModal.task,
+          nextStep: '',
+          comments: [
+            ...(detailsModal.task.comments || []),
+            {
+              id: crypto.randomUUID(),
+              text: `Se completó el siguiente paso:\n${resolvedNextStep}`,
+              createdAt: now,
+              updatedAt: now
+            }
+          ],
+          updatedAt: now
+        }
+      });
+    }
+
+    if (nextStepModal.open && nextStepModal.task?.id === taskId) {
+      setNextStepModal({
+        open: true,
+        task: {
+          ...nextStepModal.task,
+          nextStep: '',
+          updatedAt: new Date().toISOString()
+        }
+      });
     }
   };
 
@@ -573,6 +668,7 @@ export const Board: React.FC = () => {
                   onEditTask={handleOpenEditTaskModal}
                   onDeleteTask={deleteTask}
                   onViewDetails={handleOpenDetailsModal}
+                  onManageNextStep={handleOpenNextStepModal}
                   onUpdateColumn={updateColumn}
                   onDeleteColumn={deleteColumn}
                   onMoveLeft={moveColumnLeft}
@@ -606,6 +702,15 @@ export const Board: React.FC = () => {
         onAddComment={handleAddComment}
         onEditComment={handleUpdateComment}
         onDeleteComment={handleDeleteComment}
+        onCompleteNextStep={(taskId) => handleCompleteNextStep(taskId)}
+      />
+
+      <TaskNextStepModal
+        open={nextStepModal.open}
+        task={nextStepModal.task}
+        onClose={handleCloseNextStepModal}
+        onSave={handleSaveNextStep}
+        onComplete={handleCompleteNextStep}
       />
 
       {/* Dialog para agregar nueva columna */}

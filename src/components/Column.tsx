@@ -20,6 +20,7 @@ interface ColumnProps {
   onEditTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onViewDetails: (taskId: string) => void; // Nueva prop para ver detalles
+  onManageNextStep: (taskId: string) => void;
   onUpdateColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
   onMoveLeft: (columnId: string) => void;
@@ -39,6 +40,7 @@ export const Column: React.FC<ColumnProps> = ({
   onEditTask, 
   onDeleteTask,
   onViewDetails, // Nueva prop
+  onManageNextStep,
   onUpdateColumn,
   onDeleteColumn,
   onMoveLeft,
@@ -176,6 +178,7 @@ export const Column: React.FC<ColumnProps> = ({
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 onViewDetails={onViewDetails}
+                onManageNextStep={onManageNextStep}
                 onToggleVisibility={onToggleTaskVisibility}
                 onToggleMinimize={onToggleMinimize}
                 isMinimized={minimizedTasks.has(task.id)}

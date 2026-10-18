@@ -4,7 +4,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Task, getTaskPriorityOption } from '../types';
@@ -16,7 +15,6 @@ import {
   getDialogContentSx,
   getDialogSx,
   getDialogTitleSx,
-  getModalDividerSx,
   getModalInnerSurfaceSx,
   getModalMutedTextSx,
   getModalSectionSx,
@@ -30,6 +28,7 @@ interface TaskDetailsModalProps {
   onAddComment: (taskId: string, commentText: string) => void;
   onEditComment: (taskId: string, commentId: string, newText: string) => void;
   onDeleteComment: (taskId: string, commentId: string) => void;
+  onCompleteNextStep: (taskId: string) => void;
 }
 
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
@@ -38,7 +37,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onClose,
   onAddComment,
   onEditComment,
-  onDeleteComment
+  onDeleteComment,
+  onCompleteNextStep
 }) => {
   const { darkMode } = useTheme();
   
@@ -118,6 +118,32 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               </Typography>
             </Box>
           )}
+
+          <Box sx={getModalSectionSx(darkMode)}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
+                Siguiente paso
+              </Typography>
+              <Button
+                variant="outlined"
+                color="success"
+                size="small"
+                onClick={() => onCompleteNextStep(task.id)}
+                disabled={!task.nextStep?.trim()}
+              >
+                Dar por finalizado
+              </Button>
+            </div>
+            {task.nextStep?.trim() ? (
+              <Typography className="whitespace-pre-wrap text-sm">
+                {task.nextStep}
+              </Typography>
+            ) : (
+              <Typography className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                No hay un siguiente paso definido.
+              </Typography>
+            )}
+          </Box>
           
           {/* Fechas */}
           <Box sx={{ ...getModalInnerSurfaceSx(darkMode), p: 2.25 }}>

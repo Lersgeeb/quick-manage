@@ -10,6 +10,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldMore';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import Tooltip from '@mui/material/Tooltip';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -22,6 +23,7 @@ interface TaskProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onViewDetails: (id: string) => void;
+  onManageNextStep: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
   onToggleMinimize?: (id: string) => void;
   isMinimized?: boolean;
@@ -36,6 +38,7 @@ export const Task: React.FC<TaskProps> = ({
   onEdit, 
   onDelete, 
   onViewDetails,
+  onManageNextStep,
   onToggleVisibility,
   onToggleMinimize,
   isMinimized = false,
@@ -134,6 +137,12 @@ export const Task: React.FC<TaskProps> = ({
                     </ListItemIcon>
                     <ListItemText>Ver detalles</ListItemText>
                   </MenuItem>
+                  <MenuItem onClick={() => handleAction(() => onManageNextStep(task.id))}>
+                    <ListItemIcon>
+                      <PlaylistAddCheckIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Siguientes pasos</ListItemText>
+                  </MenuItem>
                   <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
                     <ListItemIcon>
                       <EditIcon fontSize="small" className="text-blue-500" />
@@ -200,6 +209,12 @@ export const Task: React.FC<TaskProps> = ({
                         <MoreHorizIcon fontSize="small" />
                       </ListItemIcon>
                       <ListItemText>Ver detalles</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => handleAction(() => onManageNextStep(task.id))}>
+                      <ListItemIcon>
+                        <PlaylistAddCheckIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>Siguientes pasos</ListItemText>
                     </MenuItem>
                     <MenuItem onClick={() => handleAction(() => onEdit(task.id))}>
                       <ListItemIcon>

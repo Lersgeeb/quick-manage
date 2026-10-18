@@ -15,7 +15,8 @@ const normalizeTask = (task: Task): Task => {
     tag: taskData.tag || taskData.client || '',
     tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
     priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
-    reference: taskData.reference || ''
+    reference: taskData.reference || '',
+    nextStep: typeof taskData.nextStep === 'string' ? taskData.nextStep : ''
   };
 };
 
@@ -189,6 +190,7 @@ export const useBoard = () => {
       tagColor: taskData.tagColor || taskData.clientColor || '#f87171',
       priority: isTaskPriority(taskData.priority) ? taskData.priority : DEFAULT_TASK_PRIORITY,
       reference: taskData.reference || '',
+      nextStep: typeof taskData.nextStep === 'string' ? taskData.nextStep : '',
       id: uuidv4(),
       columnId,
       order: 0, // Will be updated in the next step
@@ -538,6 +540,48 @@ export const useBoard = () => {
     });
   };
 
+  const setTaskNextStep = (taskId: string, nextStep: string) => {
+    updateTask(taskId, { nextStep: nextStep.trim() });
+  };
+
+  const completeTaskNextStep = (taskId: string, nextStepText?: string) => {
+    const now = new Date().toISOString();
+    const trimmedNextStepText = nextStepText?.trim();
+
+    setBoard(prev => {
+      const updatedColumns = prev.columns.map(col => {
+        const updatedTasks = col.tasks.map(task => {
+          if (task.id !== taskId) {
+            return task;
+          }
+
+          const trimmedNextStep = trimmedNextStepText || task.nextStep?.trim();
+          if (!trimmedNextStep) {
+            return task;
+          }
+
+          const newComment: Comment = {
+            id: uuidv4(),
+            text: `Se completó el siguiente paso:\n${trimmedNextStep}`,
+            createdAt: now,
+            updatedAt: now
+          };
+
+          return {
+            ...task,
+            nextStep: '',
+            comments: [...(task.comments || []), newComment],
+            updatedAt: now
+          };
+        });
+
+        return { ...col, tasks: updatedTasks };
+      });
+
+      return { ...prev, columns: updatedColumns };
+    });
+  };
+
   // Función para cambiar la visibilidad de una tarea
   const toggleTaskVisibility = (taskId: string) => {
     setBoard(prev => {
@@ -579,6 +623,8 @@ export const useBoard = () => {
     addComment,
     updateComment,
     deleteComment,
+    setTaskNextStep,
+    completeTaskNextStep,
     toggleTaskVisibility
   };
 };

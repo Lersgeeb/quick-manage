@@ -37,6 +37,7 @@ export interface Task {
   tagColor: string;
   priority: TaskPriority;
   reference: string; // Nuevo campo para referencia
+  nextStep?: string;
   hidden?: boolean;
   columnId: string;
   order: number;
