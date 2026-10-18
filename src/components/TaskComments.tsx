@@ -30,7 +30,7 @@ interface TaskCommentsProps {
   title?: string;
 }
 
-export const TaskComments: React.FC<TaskCommentsProps> = ({
+const TaskCommentsComponent: React.FC<TaskCommentsProps> = ({
   taskId,
   comments,
   onAddComment,
@@ -46,6 +46,15 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [page, setPage] = useState(1);
   const [commentsPerPage, setCommentsPerPage] = useState(5);
+  const dateFormatter = useMemo(() => (
+    new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  ), [locale]);
 
   const handleAddComment = () => {
     if (newComment.trim()) {
@@ -73,14 +82,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleString(locale, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return dateFormatter.format(new Date(dateString));
     } catch (error) {
       return t('taskDetails.invalidDate');
     }
@@ -365,3 +367,5 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({
     </div>
   );
 };
+
+export const TaskComments = React.memo(TaskCommentsComponent);

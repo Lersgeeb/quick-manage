@@ -108,74 +108,48 @@ export const Board: React.FC = () => {
   // Estado para el modal de detalles
   const [detailsModal, setDetailsModal] = useState<{
     open: boolean;
-    task: Task | null;
+    taskId: string | null;
   }>({
     open: false,
-    task: null
+    taskId: null
   });
 
   const [nextStepModal, setNextStepModal] = useState<{
     open: boolean;
-    task: Task | null;
+    taskId: string | null;
   }>({
     open: false,
-    task: null
+    taskId: null
   });
 
-  const findTaskById = (taskId: string) => {
-    for (const column of board.columns) {
-      const task = column.tasks.find(item => item.id === taskId);
-      if (task) {
-        return task;
-      }
-    }
+  const currentColumns = useMemo(() => getCurrentColumns(), [board, viewMode]);
 
-    for (const column of getCurrentColumns()) {
-      const task = column.tasks.find(item => item.id === taskId);
-      if (task) {
-        return task;
-      }
-    }
+  const taskLookup = useMemo(() => {
+    const lookup = new Map<string, { task: Task; columnId: string }>();
 
-    return null;
-  };
+    const registerColumns = (columns: typeof board.columns) => {
+      columns.forEach((column) => {
+        column.tasks.forEach((task) => {
+          if (!lookup.has(task.id)) {
+            lookup.set(task.id, { task, columnId: column.id });
+          }
+        });
+      });
+    };
 
-  const findTaskForEditing = (taskId: string) => {
-    for (const column of board.columns) {
-      const task = column.tasks.find(item => item.id === taskId);
-      if (task) {
-        return { task, columnId: column.id };
-      }
-    }
+    registerColumns(board.columns);
+    registerColumns(currentColumns);
 
-    for (const column of getCurrentColumns()) {
-      const task = column.tasks.find(item => item.id === taskId);
-      if (task) {
-        return { task, columnId: column.id };
-      }
-    }
+    return lookup;
+  }, [board.columns, currentColumns]);
 
-    return null;
-  };
+  const selectedDetailsTask = detailsModal.taskId
+    ? taskLookup.get(detailsModal.taskId)?.task ?? null
+    : null;
 
-  // Efecto para actualizar la tarea en el modal de detalles cuando cambia el board
-  useEffect(() => {
-    if (detailsModal.open && detailsModal.task) {
-      const updatedTask = findTaskById(detailsModal.task.id);
-      if (updatedTask) {
-        setDetailsModal({ open: true, task: updatedTask });
-      }
-    }
-  }, [board, viewMode]);
-
-  useEffect(() => {
-    if (nextStepModal.open && nextStepModal.task) {
-      const updatedTask = findTaskById(nextStepModal.task.id);
-      if (updatedTask) {
-        setNextStepModal({ open: true, task: updatedTask });
-      }
-    }
-  }, [board, viewMode]);
+  const selectedNextStepTask = nextStepModal.taskId
+    ? taskLookup.get(nextStepModal.taskId)?.task ?? null
+    : null;
 
   // Abrir modal para crear tarea
   const handleOpenAddTaskModal = (columnId: string) => {
@@ -184,7 +158,7 @@ export const Board: React.FC = () => {
 
   // Abrir modal para editar tarea
   const handleOpenEditTaskModal = (taskId: string) => {
-    const taskToEdit = findTaskForEditing(taskId);
+    const taskToEdit = taskLookup.get(taskId);
 
     if (taskToEdit) {
       setTaskModal({ open: true, task: taskToEdit.task, columnId: taskToEdit.columnId });
@@ -193,18 +167,14 @@ export const Board: React.FC = () => {
 
   // Abrir modal de detalles
   const handleOpenDetailsModal = (taskId: string) => {
-    const taskToView = findTaskById(taskId);
-
-    if (taskToView) {
-      setDetailsModal({ open: true, task: taskToView });
+    if (taskLookup.has(taskId)) {
+      setDetailsModal({ open: true, taskId });
     }
   };
 
   const handleOpenNextStepModal = (taskId: string) => {
-    const taskToManage = findTaskById(taskId);
-
-    if (taskToManage) {
-      setNextStepModal({ open: true, task: taskToManage });
+    if (taskLookup.has(taskId)) {
+      setNextStepModal({ open: true, taskId });
     }
   };
 
@@ -215,11 +185,11 @@ export const Board: React.FC = () => {
 
   // Cerrar modal de detalles
   const handleCloseDetailsModal = () => {
-    setDetailsModal({ open: false, task: null });
+    setDetailsModal({ open: false, taskId: null });
   };
 
   const handleCloseNextStepModal = () => {
-    setNextStepModal({ open: false, task: null });
+    setNextStepModal({ open: false, taskId: null });
   };
 
   // Manejar submit del formulario
@@ -239,133 +209,28 @@ export const Board: React.FC = () => {
   // Manejadores específicos para comentarios con actualización inmediata de UI
   const handleAddComment = (taskId: string, commentText: string) => {
     addComment(taskId, commentText);
-    
-    // Buscar la tarea actualizada si el modal está abierto
-    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
-      const task = detailsModal.task;
-      const now = new Date().toISOString();
-      
-      // Crear un nuevo comentario localmente
-      const newComment = {
-        id: crypto.randomUUID(), // Generamos un ID temporal
-        text: commentText,
-        createdAt: now,
-        updatedAt: now
-      };
-      
-      // Actualizar el estado local de la tarea en el modal
-      const updatedComments = [...(task.comments || []), newComment];
-      const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
-      
-      // Actualizar el estado del modal con la tarea actualizada
-      setDetailsModal({ open: true, task: updatedTask });
-    }
   };
 
   const handleUpdateComment = (taskId: string, commentId: string, newText: string) => {
     updateComment(taskId, commentId, newText);
-    
-    // Actualizar el estado local si es necesario
-    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
-      const task = detailsModal.task;
-      const now = new Date().toISOString();
-      
-      if (task.comments) {
-        const updatedComments = task.comments.map(comment => 
-          comment.id === commentId 
-            ? { ...comment, text: newText, updatedAt: now } 
-            : comment
-        );
-        
-        const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
-        setDetailsModal({ open: true, task: updatedTask });
-      }
-    }
   };
 
   const handleDeleteComment = (taskId: string, commentId: string) => {
     deleteComment(taskId, commentId);
-    
-    // Actualizar el estado local si es necesario
-    if (detailsModal.open && detailsModal.task && detailsModal.task.id === taskId) {
-      const task = detailsModal.task;
-      const now = new Date().toISOString();
-      
-      if (task.comments) {
-        const updatedComments = task.comments.filter(comment => comment.id !== commentId);
-        const updatedTask = { ...task, comments: updatedComments, updatedAt: now };
-        setDetailsModal({ open: true, task: updatedTask });
-      }
-    }
   };
 
   const handleSaveNextStep = (taskId: string, nextStep: string) => {
-    const trimmedNextStep = nextStep.trim();
-    setTaskNextStep(taskId, trimmedNextStep);
-
-    if (detailsModal.open && detailsModal.task?.id === taskId) {
-      setDetailsModal({
-        open: true,
-        task: {
-          ...detailsModal.task,
-          nextStep: trimmedNextStep,
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
-
-    if (nextStepModal.open && nextStepModal.task?.id === taskId) {
-      setNextStepModal({
-        open: true,
-        task: {
-          ...nextStepModal.task,
-          nextStep: trimmedNextStep,
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
+    setTaskNextStep(taskId, nextStep.trim());
   };
 
   const handleCompleteNextStep = (taskId: string, nextStepText?: string) => {
-    const resolvedNextStep = nextStepText?.trim() || findTaskById(taskId)?.nextStep?.trim() || '';
+    const resolvedNextStep = nextStepText?.trim() || taskLookup.get(taskId)?.task.nextStep?.trim() || '';
 
     if (!resolvedNextStep) {
       return;
     }
 
     completeTaskNextStep(taskId, resolvedNextStep);
-
-    if (detailsModal.open && detailsModal.task?.id === taskId) {
-      const now = new Date().toISOString();
-      setDetailsModal({
-        open: true,
-        task: {
-          ...detailsModal.task,
-          nextStep: '',
-          comments: [
-            ...(detailsModal.task.comments || []),
-            {
-              id: crypto.randomUUID(),
-              text: `Se completó el siguiente paso:\n${resolvedNextStep}`,
-              createdAt: now,
-              updatedAt: now
-            }
-          ],
-          updatedAt: now
-        }
-      });
-    }
-
-    if (nextStepModal.open && nextStepModal.task?.id === taskId) {
-      setNextStepModal({
-        open: true,
-        task: {
-          ...nextStepModal.task,
-          nextStep: '',
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
   };
 
   // Extract unique tags from all tasks
@@ -799,7 +664,7 @@ export const Board: React.FC = () => {
       {/* Modal para ver detalles de tarea */}
       <TaskDetailsModal
         open={detailsModal.open}
-        task={detailsModal.task}
+        task={selectedDetailsTask}
         onClose={handleCloseDetailsModal}
         onAddComment={handleAddComment}
         onEditComment={handleUpdateComment}
@@ -810,7 +675,7 @@ export const Board: React.FC = () => {
 
       <TaskNextStepModal
         open={nextStepModal.open}
-        task={nextStepModal.task}
+        task={selectedNextStepTask}
         onClose={handleCloseNextStepModal}
         onSave={handleSaveNextStep}
         onComplete={handleCompleteNextStep}

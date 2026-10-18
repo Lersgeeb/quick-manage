@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -40,7 +40,7 @@ interface TaskDetailsModalProps {
   onCompleteNextStep: (taskId: string, nextStep: string) => void;
 }
 
-export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
+const TaskDetailsModalComponent: React.FC<TaskDetailsModalProps> = ({
   open,
   task,
   onClose,
@@ -54,6 +54,15 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const { t, locale } = useLanguage();
   const [isEditingNextStep, setIsEditingNextStep] = useState(false);
   const [nextStepDraft, setNextStepDraft] = useState('');
+  const dateFormatter = useMemo(() => (
+    new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  ), [locale]);
 
   useEffect(() => {
     setNextStepDraft(task?.nextStep || '');
@@ -66,14 +75,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleString(locale, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return dateFormatter.format(new Date(dateString));
     } catch (error) {
       return t('taskDetails.invalidDate');
     }
@@ -252,3 +254,5 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     </Dialog>
   );
 };
+
+export const TaskDetailsModal = React.memo(TaskDetailsModalComponent);
