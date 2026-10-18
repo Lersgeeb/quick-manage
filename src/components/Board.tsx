@@ -709,7 +709,8 @@ export const Board: React.FC = () => {
         onAddComment={handleAddComment}
         onEditComment={handleUpdateComment}
         onDeleteComment={handleDeleteComment}
-        onCompleteNextStep={(taskId) => handleCompleteNextStep(taskId)}
+        onSaveNextStep={handleSaveNextStep}
+        onCompleteNextStep={handleCompleteNextStep}
       />
 
       <TaskNextStepModal

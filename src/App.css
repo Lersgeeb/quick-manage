@@ -127,6 +127,18 @@ html, body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Improve disabled button contrast in dark mode */
+.dark .MuiButton-root.Mui-disabled {
+  color: rgba(226, 232, 240, 0.5);
+  background-color: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.dark .MuiIconButton-root.Mui-disabled {
+  color: rgba(226, 232, 240, 0.38);
+  background-color: rgba(148, 163, 184, 0.1);
+}
+
 /* Adjust padding for minimized tasks */
 .task-minimized {
   padding-top: 0.5rem;

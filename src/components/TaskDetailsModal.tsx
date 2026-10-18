@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -6,6 +6,12 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { Task, getTaskPriorityOption } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { TagBadge } from './TagBadge';
@@ -14,6 +20,7 @@ import {
   getDialogActionsSx,
   getDialogContentSx,
   getDialogSx,
+  getDialogTextFieldSx,
   getDialogTitleSx,
   getModalInnerSurfaceSx,
   getModalMutedTextSx,
@@ -28,7 +35,8 @@ interface TaskDetailsModalProps {
   onAddComment: (taskId: string, commentText: string) => void;
   onEditComment: (taskId: string, commentId: string, newText: string) => void;
   onDeleteComment: (taskId: string, commentId: string) => void;
-  onCompleteNextStep: (taskId: string) => void;
+  onSaveNextStep: (taskId: string, nextStep: string) => void;
+  onCompleteNextStep: (taskId: string, nextStep: string) => void;
 }
 
 export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
@@ -38,10 +46,18 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onSaveNextStep,
   onCompleteNextStep
 }) => {
   const { darkMode } = useTheme();
-  
+  const [isEditingNextStep, setIsEditingNextStep] = useState(false);
+  const [nextStepDraft, setNextStepDraft] = useState('');
+
+  useEffect(() => {
+    setNextStepDraft(task?.nextStep || '');
+    setIsEditingNextStep(false);
+  }, [task]);
+
   if (!task) return null;
 
   const priority = getTaskPriorityOption(task.priority);
@@ -64,6 +80,16 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   // Manejador personalizado para añadir comentarios que asegura actualización inmediata
   const handleAddComment = (taskId: string, commentText: string) => {
     onAddComment(taskId, commentText);
+  };
+
+  const handleSaveNextStep = () => {
+    onSaveNextStep(task.id, nextStepDraft);
+    setIsEditingNextStep(false);
+  };
+
+  const handleCompleteNextStep = () => {
+    onCompleteNextStep(task.id, nextStepDraft);
+    setIsEditingNextStep(false);
   };
 
   return (
@@ -124,19 +150,60 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <Typography variant="overline" sx={getModalMutedTextSx(darkMode)}>
                 Siguiente paso
               </Typography>
-              <Button
-                variant="outlined"
-                color="success"
-                size="small"
-                onClick={() => onCompleteNextStep(task.id)}
-                disabled={!task.nextStep?.trim()}
-              >
-                Dar por finalizado
-              </Button>
+              <div className="flex items-center gap-1">
+                <Tooltip title="Editar">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() => setIsEditingNextStep(true)}
+                      sx={{ color: darkMode ? '#60a5fa' : 'primary.main' }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                {isEditingNextStep && (
+                  <Tooltip title="Guardar">
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={handleSaveNextStep}
+                        disabled={!nextStepDraft.trim()}
+                        sx={{ color: darkMode ? '#fbbf24' : 'warning.main' }}
+                      >
+                        <SaveIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                )}
+                <Tooltip title="Marcar como realizado">
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={handleCompleteNextStep}
+                      disabled={isEditingNextStep || !nextStepDraft.trim()}
+                      sx={{ color: darkMode ? '#4ade80' : 'success.main' }}
+                    >
+                      <TaskAltIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </div>
             </div>
-            {task.nextStep?.trim() ? (
+            {isEditingNextStep ? (
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                value={nextStepDraft}
+                onChange={(event) => setNextStepDraft(event.target.value)}
+                label="Siguiente paso"
+                placeholder="Describe el siguiente paso..."
+                sx={getDialogTextFieldSx(darkMode)}
+              />
+            ) : nextStepDraft.trim() ? (
               <Typography className="whitespace-pre-wrap text-sm">
-                {task.nextStep}
+                {nextStepDraft}
               </Typography>
             ) : (
               <Typography className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -159,9 +226,6 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           
           {/* Componente de comentarios */}
           <Box sx={getModalSectionSx(darkMode)}>
-            <h4 className={`mb-2 text-lg font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Bitácora de comentarios
-            </h4>
             <TaskComments
               taskId={task.id}
               comments={task.comments || []}
