@@ -17,7 +17,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useBoard } from '../hooks/useBoard';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { Task, TaskPriority, TaskSortField, TaskTextDisplayMode, getTaskPriorityOption } from '../types';
+import { Task, TaskPriority, TaskSortField, TaskTextDisplayMode, TASK_PRIORITY_OPTIONS, getTaskPriorityOption } from '../types';
 import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
